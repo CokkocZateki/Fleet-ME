@@ -1,1 +1,3 @@
 config.php
+/sql/*.sql
+!/sql/schema.sql
