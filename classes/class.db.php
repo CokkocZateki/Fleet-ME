@@ -24,6 +24,7 @@ class DB extends mysqli
         if( mysqli_connect_errno() ) {
             throw new exception(mysqli_connect_error(), mysqli_connect_errno()); 
         }
+        $this->autocommit(TRUE);
     }
 
     public static function getConnection() {

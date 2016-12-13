@@ -6,6 +6,7 @@ error_reporting(E_ALL | E_STRICT);
 use Swagger\Client\ApiException;
 use Swagger\Client\Api\CharacterApi;
 use Swagger\Client\Api\LocationApi;
+use Swagger\Client\Api\UniverseApi;
 
 require_once('classes/esi/autoload.php');
 require_once('classes/class.esisso.php');
@@ -24,9 +25,8 @@ class ESIPILOT extends ESISSO
     protected $shipTypeID = null;
     protected $shipName = null;
     protected $stationID = null;
-    protected $stationName = null;
+    protected $stationName = 'in space';
     protected $structureID = null;
-    protected $structureName = null;
     protected $backupfc = false;
     protected $fitting = null;
     protected $lastFetch = null;
@@ -89,6 +89,23 @@ class ESIPILOT extends ESISSO
                 }
                 if (isset($locationinfo->structure_id)) {
                     $this->structureID = $locationinfo->structure_id;
+                    $qry = DB::getConnection();
+                    $sql="SELECT structureName FROM structures WHERE structureID = ".$this->structureID;
+                    $result = $qry->query($sql);
+                    if($result->num_rows) {
+                        $row=$result->fetch_assoc();
+                        $this->stationName = $row['structureName'];
+                    } else {
+                        if (!isset($esiapi)) {
+                            $esiapi = new ESIAPI();
+                        }
+                        $esiapi->setAccessToken($this->accessToken);
+                        $universeapi = new UniverseApi();
+                        $structureinfo = json_decode($universeapi->getUniverseStructuresStructureId($this->structureID, 'tranquility'));
+                        $this->stationName = $structureinfo->name;
+                        $sql="INSERT INTO structures (solarSystemID,structureID,structureName,lastUpdate) VALUES ({$structureinfo->solar_system_id},{$this->structureID},'{$this->stationName}',NOW())";
+                        $result = $qry->query($sql);
+                    }
                 } else {
                     $this->structureID = null;
                 }
@@ -126,6 +143,18 @@ class ESIPILOT extends ESISSO
 
         public function getStationName() {
                 return $this->stationName;
+        }
+
+        public function getShipTypeID() {
+                return $this->shipTypeID;
+        }
+
+        public function getShipTypeName() {
+                return $this->shipTypeName;
+        }
+
+        public function getShipName() {
+                return $this->shipName;
         }
 
 }

@@ -18,11 +18,17 @@ $html = '';
 
 $esipilot = new ESIPILOT($_SESSION['characterID']);
 $page = new Page($esipilot->getCharacterName());
+if ($esipilot->getError()) {
+  $page->setError($esipilot->getMessage());
+}
 $page->addBody(' <div class="row">
   <div class="col-sm-1"><img class="img-rounded" src="https://imageserver.eveonline.com/Character/'.$esipilot->getCharacterID().'_64.jpg"></div>
-  <div class="col-sm-3">Name: '.$esipilot->getCharacterName().'<br/></div>
-  Name: '.$esipilot->getLocationName().'<br/>
-  Name: '.$esipilot->getStationName().'<br/>
+  <div class="col-sm-4">
+  <div class="row"><div class="col-sm-5">Name:</div><div class="col-sm-7">'.$esipilot->getCharacterName().'</div></div>
+  <div class="row"><div class="col-sm-5">Current System:</div><div class="col-sm-7">'.$esipilot->getLocationName().'</div></div>
+  <div class="row"><div class="col-sm-5">Current Station:</div><div class="col-sm-7">'.$esipilot->getStationName().'</div></div>
+  </div>
+  <div class="col-sm-1"><img class="img-rounded" src="https://imageserver.eveonline.com/Type/'.$esipilot->getShipTypeID().'_64.png"></div>
 </div>');
 $page->display();
 exit;
