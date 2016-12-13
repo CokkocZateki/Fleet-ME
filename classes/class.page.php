@@ -12,6 +12,7 @@ class Page {
     private $error = null;
     private $warning = null;
     private $info = null;
+    private $buildTime = '';
 
     public function __construct($title) {
         $this->title = $title;
@@ -47,6 +48,10 @@ class Page {
 
     function setInfo($html) {
         $this->info = $html;
+    }
+
+    function setBuildTime($html) {
+        $this->buildTime = $html;
     }
 
     function display() {
@@ -153,11 +158,12 @@ class Page {
         $page .= '<div class="panel panel-default">
                 <div class="panel-body">
                     <h3>'.$this->title.'</h3>
-                    '.$this->body.'
-                </div>
-            </div>';
+                    '.$this->body.'<br/>';
+            if ($this->buildTime != '') {
+                 $page .= '<p class="text-right small"><em>Page built in '.$this->buildTime.' seconds.</em></p>';
+            }
     }
-    $page .= '</div>
+    $page .= '</div></div></div>
         <footer class="footer navbar-inverse">
             <div class="container navbar-inverse">
                 <p class="text-muted">EVE Online, the EVE logo, EVE and all associated logos and designs are the intellectual property of <a href="http://www.ccpgames.com/">CCP</a> hf. All artwork, screenshots, characters, vehicles, storylines, world facts or other recognizable features of the intellectual property relating to these trademarks are likewise the intellectual property of CCP hf. EVE Online and the EVE logo are the registered trademarks of CCP hf. All rights are reserved worldwide. All other trademarks are the property of their respective owners. CCP hf. has granted permission to Fleet-Yo to use EVE Online and all associated logos and designs for promotional and information purposes on its website but does not endorse, and is not in any way affiliated with, Fleet-Yo. CCP is in no way responsible for the content on or functioning of this website, nor can it be liable for any damage arising from the use of this website.</p>

@@ -48,6 +48,7 @@ class ESIPILOT extends ESISSO
         $sql="SELECT * FROM pilots WHERE characterID=".$this->characterID;
         $qry = DB::getConnection();
         $result = $qry->query($sql);
+        $refresh = false;
         if($result->num_rows) {
             $row = $result->fetch_assoc();
             $this->locationID = $row['locationID'];
@@ -56,8 +57,51 @@ class ESIPILOT extends ESISSO
             $this->structureID = $row['structureID'];
             $this->backupfc = $row['backupfc'];
             $this->fitting = $row['fitting'];
-            $this->lastfetch = strtotime($row['backupfc']);
+            $this->lastfetch = strtotime($row['lastFetch']);
+            if (strtotime("now")-$this->lastfetch > 60 ) {
+                $refresh = true;
+            } else {
+                if (isset($this->stationID) && $this->stationID != 0) {
+                    $sql="SELECT mapSolarSystems.solarSystemName as systemName, mapDenormalize.itemName as stationName FROM `mapSolarSystems` INNER JOIN mapDenormalize on mapSolarSystems.solarSystemID = mapDenormalize.solarSystemID WHERE mapSolarSystems.solarSystemID = ".$this->locationID." AND mapDenormalize.itemID =".$this->stationID;
+                    $qry = DB::getConnection();
+                    $result = $qry->query($sql);
+                    if($result->num_rows) {
+                        $row=$result->fetch_assoc();
+                        $this->locationName = $row['systemName'];
+                        $this->stationName = $row['stationName'];
+                    }
+                } else {
+                    $this->stationID = null;
+                    $qry = DB::getConnection();
+                    $sql="SELECT solarSystemName as systemName FROM mapSolarSystems WHERE solarSystemID = ".$this->locationID;
+                    $result = $qry->query($sql);
+                    if($result->num_rows) {
+                        $row=$result->fetch_assoc();
+                        $this->locationName = $row['systemName'];
+                    }
+
+                    if (isset($this->structureID) && $this->structureID != 0) {
+                        $qry = DB::getConnection();
+                        $sql="SELECT structureName FROM structures WHERE structureID = ".$this->structureID;
+                        $result = $qry->query($sql);
+                        if($result->num_rows) {
+                            $row=$result->fetch_assoc();
+                            $this->stationName = $row['structureName'];
+                        }
+                    }
+                }
+                $qry = DB::getConnection();
+                $sql="SELECT typeName FROM invTypes WHERE typeID = ".$this->shipTypeID;
+                $result = $qry->query($sql);
+                if($result->num_rows) {
+                    $row=$result->fetch_assoc();
+                    $this->shipTypeName = $row['typeName'];
+                }
+            }
         } else {
+            $refresh = true;
+        }
+        if ($refresh) {
             if (!isset($esiapi)) {
                 $esiapi = new ESIAPI();
             }
@@ -125,7 +169,17 @@ class ESIPILOT extends ESISSO
                 $this->message = 'Could not get location Info: '.$e->getMessage().PHP_EOL;
                 return false;
             }
-
+            $qry = DB::getConnection();
+            $sql="SELECT typeName FROM invTypes WHERE typeID = ".$this->shipTypeID;
+            $result = $qry->query($sql);
+            if($result->num_rows) {
+                $row=$result->fetch_assoc();
+                $this->shipTypeName = $row['typeName'];
+            }
+            $qry = DB::getConnection();
+            $sql="REPLACE INTO pilots (characterID,locationID,shipTypeID,stationID,structureID,lastFetch)
+                  VALUES ({$this->characterID},'{$this->locationID}',{$this->shipTypeID},'{$this->stationID}','{$this->structureID}',NOW())";
+            $result = $qry->query($sql);
         }
     }
 
