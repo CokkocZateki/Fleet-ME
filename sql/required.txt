@@ -1,0 +1,13 @@
+The following Database tables from the static data export are required:
+
+invGroups.sql
+invMarketGroups.sql
+invTypes.sql
+mapDenormalize.sql
+mapSolarSystems.sql
+
+You can get them here:
+
+https://www.fuzzwork.co.uk/dump/latest/
+
+---

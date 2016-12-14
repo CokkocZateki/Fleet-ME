@@ -25,5 +25,17 @@ class URL {
         $s = $_SERVER;
         return self::url_origin( $s, $use_forwarded_host ) . substr($s['REQUEST_URI'], 0, strrpos($s['REQUEST_URI'], '/') + 1);
     }
+
+    public static function path_only()
+    {
+        $s = $_SERVER;
+        return substr($s['REQUEST_URI'], 0, strrpos($s['REQUEST_URI'], '/') + 1);
+    }
+
+    public static function server()
+    {
+        $s = $_SERVER;
+        return $s['SERVER_NAME'];
+    }
 }    
 ?>

@@ -42,6 +42,9 @@ if (isset($_GET['code'])) {
     if ($result) {
         $_SESSION['characterID'] = $esisso->getCharacterID();
         $_SESSION['characterName'] = $esisso->getCharacterName();
+        $authtoken = new AUTHTOKEN(null, $_SESSION['characterID']);
+        $authtoken->addToDb();
+        $authtoken->storeCookie();
         $page = new Page('SSO Login');
         $page->setInfo($esisso->getMessage());
         $page->display();

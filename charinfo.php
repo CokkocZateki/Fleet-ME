@@ -1,5 +1,6 @@
 <?php
 $start_time = microtime(true);
+require_once('auth.php');
 require_once('config.php');
 require_once('loadclasses.php');
 
@@ -27,11 +28,11 @@ $page->addBody(' <div class="row">
   <div class="row"><div class="col-sm-5">Name:</div><div class="col-sm-7">'.$esipilot->getCharacterName().'</div></div>
   <div class="row"><div class="col-sm-5">Current System:</div><div class="col-sm-7">'.$esipilot->getLocationName().'</div></div>
   <div class="row"><div class="col-sm-5">Current Station:</div><div class="col-sm-7">'.$esipilot->getStationName().'</div></div>
-  <div class="row"><div class="col-sm-5">Current ship:</div><div class="col-sm-7">'.$esipilot->getShipTypeName().' ('.$esipilot->getShipName().')</div></div>
+  <div class="row"><div class="col-sm-5">Current ship:</div><div class="col-sm-7">'.$esipilot->getShipTypeName().'</div></div>
   </div>
   <div class="col-sm-2 col-xs-3"><img class="img-rounded" src="https://imageserver.eveonline.com/Type/'.$esipilot->getShipTypeID().'_64.png"></div>
 </div>');
-$page->setBuildTime(number_format(microtime(true) - $start_time, 2));
+$page->setBuildTime(number_format(microtime(true) - $start_time, 3));
 $page->display();
 exit;
 ?>

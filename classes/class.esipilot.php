@@ -20,14 +20,12 @@ class ESIPILOT extends ESISSO
 {
     protected $locationID = null;
     protected $locationName = null;
-    protected $fleetID = null;
     protected $shipTypeName = null;
     protected $shipTypeID = null;
     protected $shipName = null;
     protected $stationID = null;
     protected $stationName = 'in space';
     protected $structureID = null;
-    protected $backupfc = false;
     protected $fitting = null;
     protected $lastFetch = null;
 
@@ -55,7 +53,6 @@ class ESIPILOT extends ESISSO
             $this->shipTypeID = $row['shipTypeID'];
             $this->stationID = $row['stationID'];
             $this->structureID = $row['structureID'];
-            $this->backupfc = $row['backupfc'];
             $this->fitting = $row['fitting'];
             $this->lastfetch = strtotime($row['lastFetch']);
             if (strtotime("now")-$this->lastfetch > 60 ) {

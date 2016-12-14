@@ -18,6 +18,8 @@ class Page {
         $this->title = $title;
         if (!isset($_SESSION['characterID'])) {
             $this->addMenuItem('Login', array('Login as FC' => 'login.php?login=fc', 'Login as member' => 'login.php?login=member'));
+        } else {
+            $this->addMenuItem('My fit', 'fitting.php');
         }
         $this->addMenuItem('About', 'about.php');
     }
@@ -156,8 +158,8 @@ class Page {
 
     if ($this->body != '') {
         $page .= '<div class="panel panel-default">
+                <div class="panel-heading"><h4>'.$this->title.'</h4></div>
                 <div class="panel-body">
-                    <h3>'.$this->title.'</h3>
                     '.$this->body.'<br/>';
             if ($this->buildTime != '') {
                  $page .= '<p class="text-right small"><em>Page built in '.$this->buildTime.' seconds.</em></p>';
