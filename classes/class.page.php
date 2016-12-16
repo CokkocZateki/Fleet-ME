@@ -8,7 +8,7 @@ class Page {
     private $header = '';
     private $body = '';
     private $title = '';
-    private $menuitems = array('Home' => 'index.php');
+    private $menuitems = array('<span class="glyphicon glyphicon-home"></span> Home' => 'index.php');
     private $error = null;
     private $warning = null;
     private $info = null;
@@ -17,11 +17,12 @@ class Page {
     public function __construct($title) {
         $this->title = $title;
         if (!isset($_SESSION['characterID'])) {
-            $this->addMenuItem('Login', array('Login as FC' => 'login.php?login=fc', 'Login as member' => 'login.php?login=member'));
+            $this->addMenuItem('<span class="glyphicon glyphicon-user"></span> Login', array('Login as member' => 'login.php?login=member', 'Login as FC' => 'login.php?login=fc'));
         } else {
-            $this->addMenuItem('My fit', 'fitting.php');
+            $this->addMenuItem('<span class="glyphicon glyphicon-send"></span> My fit', 'fitting.php');
+            $this->addMenuItem('<span class="glyphicon glyphicon-knight"></span> My fleet', 'fleet.php');
         }
-        $this->addMenuItem('About', 'about.php');
+        $this->addMenuItem('<span class="glyphicon glyphicon-info-sign"></span> About', 'about.php');
     }
 
     function setTitle($title){
@@ -164,14 +165,14 @@ class Page {
             if ($this->buildTime != '') {
                  $page .= '<p class="text-right small"><em>Page built in '.$this->buildTime.' seconds.</em></p>';
             }
-    }
+    } else {$page .= '<div><br/></div>'; }
     $page .= '</div></div></div>
         <footer class="footer navbar-inverse">
             <div class="container navbar-inverse">
                 <p class="text-muted">EVE Online, the EVE logo, EVE and all associated logos and designs are the intellectual property of <a href="http://www.ccpgames.com/">CCP</a> hf. All artwork, screenshots, characters, vehicles, storylines, world facts or other recognizable features of the intellectual property relating to these trademarks are likewise the intellectual property of CCP hf. EVE Online and the EVE logo are the registered trademarks of CCP hf. All rights are reserved worldwide. All other trademarks are the property of their respective owners. CCP hf. has granted permission to Fleet-Yo to use EVE Online and all associated logos and designs for promotional and information purposes on its website but does not endorse, and is not in any way affiliated with, Fleet-Yo. CCP is in no way responsible for the content on or functioning of this website, nor can it be liable for any damage arising from the use of this website.</p>
             </div>
         </footer>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha256-/SIrNqv8h6QGKDuNoLGA4iret+kyesCkHGzVUUV0shc=" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         </body>
         </html>';

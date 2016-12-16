@@ -14,12 +14,15 @@ class FITTING
     protected $error = false;
     protected $message = '';
 
-    public function __construct($fit) {
+    public function __construct($fit = null) {
+      if ($fit != null) {
         $temp = array();
         $tempmods = array();
+        $named = false;
         foreach(preg_split("/((\r?\n)|(\r\n?))/", $fit) as $line){
-            if (0 === strpos($line, '[')) {
+            if (0 === strpos($line, '[') && !$named) {
                 $temp[] = array(0 => preg_split('/[\[,]/', $line)[1]);
+                $named = true;
             } else {
                 if (trim($line) == '') {
                     $temp[] = $tempmods;
@@ -82,6 +85,7 @@ class FITTING
         $this->fitting['rigs'] = $this->rigs;
         $this->fitting['subsys'] = $this->subsys;
         $this->fitting['drones'] = $this->drones;
+      }
     }
 
     public function addToChar($characterID) {
@@ -110,6 +114,40 @@ class FITTING
             $this->message = "Pilot not found in the database";
             return false;
         }
+    }
+    
+    public static function getCharFit($characterID) {
+        $qry = DB::getConnection();
+        $sql="SELECT fitting FROM pilots WHERE characterID = ".$characterID;
+        $result = $qry->query($sql);
+        if($result->num_rows) {
+            $row = $result->fetch_row();
+            $fitting = json_decode($row[0], True);
+            return $fitting;
+        } else {
+            return null;
+        } 
+    }
+
+    public static function getNames($fitting) {
+        $qry = DB::getConnection();
+        $sql="SELECT typeID, typeName FROM invTypes WHERE typeID=".implode(" OR typeID=", self::flatten($fitting));
+        $result = $qry->query($sql);
+        $return = array();
+        if($result->num_rows) {
+            while ($row = $result->fetch_assoc()) {
+                $return[$row['typeID']] = $row['typeName'];
+            }
+            return $return;
+        } else {
+            return null;
+        }
+    }
+
+    private static function flatten(array $array) {
+        $return = array();
+        array_walk_recursive($array, function($a) use (&$return) { $return[] = $a; });
+        return $return;
     }
 
     public function getShipTypeID() {

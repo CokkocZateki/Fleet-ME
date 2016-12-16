@@ -158,6 +158,7 @@ class ESIPILOT extends ESISSO
 
             try {
                 $shipinfo = json_decode($locationapi->getCharactersCharacterIdShip($this->characterID, 'tranquility'));
+                $previousship = $this->shipTypeID;
                 $this->shipTypeID = $shipinfo->ship_type_id;
                 $shipUniqueID = $shipinfo->ship_item_id;
                 $this->shipName = $shipinfo->ship_name;
@@ -174,8 +175,13 @@ class ESIPILOT extends ESISSO
                 $this->shipTypeName = $row['typeName'];
             }
             $qry = DB::getConnection();
-            $sql="REPLACE INTO pilots (characterID,locationID,shipTypeID,stationID,structureID,lastFetch)
-                  VALUES ({$this->characterID},'{$this->locationID}',{$this->shipTypeID},'{$this->stationID}','{$this->structureID}',NOW())";
+            if ($this->shipTypeID == $previousship) {
+                $sql="UPDATE pilots SET locationID='{$this->locationID}',shipTypeID={$this->shipTypeID},stationID='{$this->stationID}',
+                      structureID='{$this->structureID}',lastFetch=NOW() WHERE characterID={$this->characterID}";
+            } else {
+                $sql="UPDATE pilots SET locationID='{$this->locationID}',shipTypeID={$this->shipTypeID},stationID='{$this->stationID}',
+                      structureID='{$this->structureID}',fitting=NULL,lastFetch=NOW() WHERE characterID={$this->characterID}";
+            }
             $result = $qry->query($sql);
         }
     }
