@@ -18,13 +18,13 @@ function random_str($length, $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzAB
 }
 
 if (isset($_GET['code'])) {
-  if (isset($_SESSION['characterID'])) {
+  /*if (isset($_SESSION['characterID'])) {
       $page = new Page('SSO Login');
       $html = "Error: Code was used already.";
       $page->setError($html);
       $page->display();
       exit;
-  }
+  }*/
   $code = $_GET['code'];
   $state = $_GET['state'];
   if ($state != $_SESSION['authstate']) {
@@ -62,18 +62,19 @@ if (isset($_GET['login'])) {
   if ($_GET['login'] == 'fc') {
     if (!isset($_GET['fleetlink'])) {
         $html = '<form action="" method="get">
-                   <div class="form-group row">
-                     <input type="hidden" name="login" value="fc">
-                     <label for="fleetlink" class="col-xs-1 col-form-label">Fleet link:</label>
-                     <div class="col-xs-6">
-                       <input class="form-control" type="text" id="fleetlink" name="fleetlink">
-                     </div>
-                     <p id="passwordHelpBlock" class="form-text text-muted">Paste your external fleet link.</p>
-                   </div>
-                   <button type="submit" class="btn btn-primary">Submit</button>
-                 </form>';
-        $page = new Page('SSO Login');
-        $page->setInfo($html);
+            <div class="form-group col-xs-12 col-md-6">
+              <input type="hidden" name="login" value="fc">
+              <div class="input-group row">
+                <span class="input-group-addon"><i class="glyphicon glyphicon-knight"></i></span>
+                <input class="form-control" type="text" id="fleetlink" name="fleetlink" placeholder="Paste your external fleet link.">
+              </div>
+              <div class="input-group row">
+                <br/><button type="submit" class="btn btn-primary">Submit</button>
+              </div>
+           </div>
+        </form>';
+        $page = new Page('Register Fleet');
+        $page->addBody($html);
         $page->display();
         exit;
     }

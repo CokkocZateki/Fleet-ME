@@ -60,7 +60,16 @@ class ESIFLEET extends ESISSO
                 $sql = "DELETE FROM fleetmembers WHERE fleetID=".$this->fleetID;
                 $qry->query($sql);
                 foreach ($fleetmembers as $member) {
-                    $this->members[] = $member->getCharacterId();
+                    $this->members[] = array('id' => $member->getCharacterId(), 
+                                             'joined' => $member->getJoinTime(),
+                                             'role' => $member->getRole(),
+                                             'ship' => $member->getShipTypeId(),
+                                             'system' => $member->getSolarSystemId(),
+                                             'station' => $member->getStationId(),
+                                             'wing' => $member->getWingId(),
+                                             'squad' => $member->getSquadId(),
+                                             'fleetwarp' => $member->getTakesFleetWarp() );
+                    
                 }
             }
         } else {

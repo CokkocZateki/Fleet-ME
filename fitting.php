@@ -97,8 +97,7 @@ if ($fitting) {
 
 $html .= '<div class="col-xs-12 col-md-6 col-lg-4"><form action="" method=post>
   <div class="form-group col-xs-12">
-    <div class="row"><label for="fitting">Paste your fitting:</label>
-    <textarea class="form-control" rows="15" name="fitting" id="fitting"></textarea><br/></div>
+    <div class="row"><textarea class="form-control" rows="15" name="fitting" id="fitting" placeholder="Paste your fitting"></textarea><br/></div>
     <div class="row"><button type="submit" class="btn btn-primary">Submit</button></div>
   </div>
 </form></div></div>';

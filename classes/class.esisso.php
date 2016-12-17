@@ -337,5 +337,12 @@ class ESISSO
 		}
         }
 
+        public function getScopes() {
+                if (empty($this->scopes)) {
+                        $this->verify();
+                }
+                return $this->scopes;
+        }
+
 }
 ?>
