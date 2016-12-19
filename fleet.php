@@ -47,14 +47,14 @@ function getFleetTable($fleet) {
     $members = $fleet->getMembers();
     $locationDict = EVEHELPERS::getSystemNames(array_column($members, 'system'));
     $shipDict = EVEHELPERS::getInvNames(array_column($members, 'ship'));
-    $table = '<table class="table table-hover">
+    $table = '<table id="fleettable" class="table table-striped table-hover" cellspacing="0" width="100%">
       <thead>
         <tr>
           <th>Pilot</th>
           <th>Location</th>
           <th>Ship</th>
-          <th>Fit</th>
-          <th>backupfc</th>
+          <th class="no-sort">Fit</th>
+          <th class="no-sort">backupfc</th>
         </tr>
       </thead>';
       foreach ($members as $m) {
@@ -84,6 +84,20 @@ function getFleetTable($fleet) {
     </script>';
     return $table;
 }
+$page->addFooter('<script>$(document).ready(function() {
+            $("#fleettable").dataTable(
+               {
+                   "bPaginate": false,
+                   "aoColumnDefs" : [ {
+                       "bSortable" : false,
+                       "aTargets" : [ "no-sort" ]
+                   } ],
+               });
+        });
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/css/dataTables.bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/js/dataTables.bootstrap.min.js"></script>');
 
 $page->addBody(getFleetTable($fleet));
 $page->setBuildTime(number_format(microtime(true) - $start_time, 3));

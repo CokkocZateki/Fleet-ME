@@ -7,6 +7,7 @@ if (session_status() != PHP_SESSION_ACTIVE) {
 class Page {
     private $header = '';
     private $body = '';
+    private $footer = '';
     private $title = '';
     private $menuitems = array('<span class="glyphicon glyphicon-home"></span> Home' => 'index.php');
     private $error = null;
@@ -36,6 +37,10 @@ class Page {
 
     function addBody($body){
         $this->body .= $body;
+    }
+
+    function addFooter($footer){
+        $this->footer .= $footer;
     }
 
     function addMenuItem($name, $url) {
@@ -196,6 +201,7 @@ class Page {
         </footer>
         <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        '.$this->footer.'
         </body>
         </html>';
         echo $page;
