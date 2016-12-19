@@ -31,7 +31,7 @@ class ESIPILOT extends ESISSO
 
     public function __construct($characterID) {
         parent::__construct(null, $characterID);
-        if ($this->characterName == null) {
+        /*if ($this->characterName == null) {
             $esiapi = new ESIAPI();
             $charapi = new CharacterApi($esiapi);
             try {
@@ -42,13 +42,26 @@ class ESIPILOT extends ESISSO
                 $this->message = 'Could not relove character name: '.$e->getMessage().PHP_EOL;
                 return false;
             }
-        }
+        }*/
         $sql="SELECT * FROM pilots WHERE characterID=".$this->characterID;
         $qry = DB::getConnection();
         $result = $qry->query($sql);
         $refresh = false;
         if($result->num_rows) {
             $row = $result->fetch_assoc();
+            if ($row['characterName'] == null || $row['characterName'] == '') {
+                $esiapi = new ESIAPI();
+                $charapi = new CharacterApi($esiapi);
+                try {
+                    $charinfo = json_decode($charapi->getCharactersCharacterId($this->characterID, 'tranquility'));
+                    $this->characterName = $charinfo->name;
+                } catch (Exception $e) {
+                    $this->error = true;
+                    $this->message = 'Could not relove character name: '.$e->getMessage().PHP_EOL;
+                }
+            } else {
+                $this->characterName = $row['characterName'];
+            }
             $this->locationID = $row['locationID'];
             $this->shipTypeID = $row['shipTypeID'];
             $this->stationID = $row['stationID'];
@@ -176,13 +189,18 @@ class ESIPILOT extends ESISSO
             }
             $qry = DB::getConnection();
             if ($this->shipTypeID == $previousship) {
-                $sql="UPDATE pilots SET locationID='{$this->locationID}',shipTypeID={$this->shipTypeID},stationID='{$this->stationID}',
+                $sql="UPDATE pilots SET characterName='{$this->characterName}',locationID='{$this->locationID}',shipTypeID={$this->shipTypeID},stationID='{$this->stationID}',
                       structureID='{$this->structureID}',lastFetch=NOW() WHERE characterID={$this->characterID}";
             } else {
-                $sql="UPDATE pilots SET locationID='{$this->locationID}',shipTypeID={$this->shipTypeID},stationID='{$this->stationID}',
+                $sql="UPDATE pilots SET characterName='{$this->characterName}',locationID='{$this->locationID}',shipTypeID={$this->shipTypeID},stationID='{$this->stationID}',
                       structureID='{$this->structureID}',fitting=NULL,lastFetch=NOW() WHERE characterID={$this->characterID}";
             }
             $result = $qry->query($sql);
+            if ($qry->affected_rows == 0) {
+                $sql="INSERT INTO pilots (characterID,characterName,locationID,shipTypeID,stationID,structureID,fitting,lastFetch)
+                      VALUES ({$this->characterID},'{$this->characterName}','{$this->locationID}',{$this->shipTypeID},'{$this->stationID}','{$this->structureID}',NULL,NOW())";
+                $qry->query($sql);
+            }
         }
     }
 

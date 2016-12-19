@@ -59,11 +59,11 @@ class Page {
     }
 
     function display() {
-        $page ='
-        <html lang=en>
+        $page ='<!DOCTYPE html>
+        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
         <head>
-            <meta charset=utf-8>
-            <link rel="canonical" href="'.URL::url_path().'" />
+            <meta charset="utf-8"/>
+            <link rel="canonical" href="'.URL::url_path().'"/>
             <meta name="og:site_name" content="Fleet Yo!">
             <meta name="description" content="This service is brought to you by Snitch Ashor of BRGF (The BLOC).">
             <meta name="og:description" content="This service is brought to you by Snitch Ashor of BRGF (The BLOC).">

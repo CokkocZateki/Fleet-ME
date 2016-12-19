@@ -41,6 +41,30 @@ class ESIFLEET extends ESISSO
             $this->public = $row['public'];
             $this->created = strtotime($row['created']);
             $this->lastFetch = strtotime($row['lastFetch']);
+            $sql = "SELECT fm.characterID, p.characterName, fm.backupfc, p.shipTypeID, p.fitting, p.locationID, p.stationID, p.structureID, fm.wingID, fm.squadID, fm.role, fm.fleetWarp, fm.joined FROM fleetmembers as fm 
+                LEFT JOIN pilots as p ON p.characterID=fm.characterID WHERE fleetID=".$fleetID;
+            if ($stmt = $qry->prepare($sql)) {
+                $stmt->execute();
+                $stmt->bind_result($id, $name, $backup, $ship, $fit, $system, $station, $structure, $wing, $squad, $role, $fleetwarp, $joined);
+                while ($stmt->fetch()) {
+                    $this->members[] = array('id' => $id,
+                                         'name' => $name,
+                                         'backupfc' => $backup,
+                                         'joined' => strtotime($joined),
+                                         'role' => $role,
+                                         'ship' => $ship,
+                                         'fit' => $fit,
+                                         'system' => $system,
+                                         'station' => $station,
+                                         'station' => $structure,
+                                         'wing' => $wing,
+                                         'squad' => $squad,
+                                         'fleetwarp' => $fleetwarp );
+                }
+                $stmt->close();
+            }        
+
+
         } elseif (!$dbonly) {
             $esiapi = new ESIAPI();
             $esiapi->setAccessToken($this->accessToken);
@@ -60,22 +84,30 @@ class ESIFLEET extends ESISSO
                 $sql = "DELETE FROM fleetmembers WHERE fleetID=".$this->fleetID;
                 $qry->query($sql);
                 foreach ($fleetmembers as $member) {
-                    $this->members[] = array('id' => $member->getCharacterId(), 
+                    $this->members[] = array('id' => $member->getCharacterId(),
+                                             'backupfc' => false, 
                                              'joined' => $member->getJoinTime(),
                                              'role' => $member->getRole(),
                                              'ship' => $member->getShipTypeId(),
                                              'system' => $member->getSolarSystemId(),
                                              'station' => $member->getStationId(),
+                                             'structure' => null,
                                              'wing' => $member->getWingId(),
                                              'squad' => $member->getSquadId(),
                                              'fleetwarp' => $member->getTakesFleetWarp() );
                     
+                }
+                foreach($this->members as $m) {
+                    $sql = "REPLACE INTO fleetmembers (characterID, fleetID, backupfc, wingID, squadID, role, fleetWarp, joined)
+                           VALUES ({$m['id']},{$this->fleetID},FALSE,{$m['wing']},{$m['squad']},'{$m['role']}', {$m['fleetwarp']},'".$m['joined']->format('Y-m-d H:i:s')."')";
+                    $qry->query($sql);
                 }
             }
         } else {
             $this->fleetID = null;
         }
     }
+
     public static function getFleetForChar($characterID) {
         $qry = DB::getConnection();
         $sql = "SELECT fleets.fleetID, fleets.boss FROM fleetmembers LEFT JOIN fleets ON fleets.fleetID=fleetmembers.fleetID WHERE characterID=".$characterID;
@@ -91,6 +123,92 @@ class ESIFLEET extends ESISSO
         } else {
             return false;
         }
+    }
+
+    public function update() {
+        $esiapi = new ESIAPI();
+        $esiapi->setAccessToken($this->accessToken);
+        $fleetapi = new FleetsApi($esiapi);
+        try {
+            $fleetinfo = $fleetapi->getFleetsFleetId($this->fleetID, 'tranquility');
+            $fleetmembers = $fleetapi->getFleetsFleetIdMembers($this->fleetID, 'en', 'tranquility');
+        } catch (ApiException $e) {
+            $this->error = true;
+            $this->message = 'Could not find Fleet: '.$e->getMessage().PHP_EOL;
+            return false;
+        }
+        $this->members = array();
+        $dbmembers = array();
+        $qry = DB::getConnection();
+        $sql = "SELECT fm.fleetID as fleet, fm.characterID as id, p.shipTypeID as ship, p.fitting as fit, p.characterName as name, p.locationID as location, p.stationID as station, fm.backupfc as bfc
+                FROM fleetmembers as fm LEFT JOIN pilots as p ON p.characterID=fm.characterID";
+        $result = $qry->query($sql);
+        while ($row = $result->fetch_assoc()) {
+            $dbmembers[$row['id']] = array('fleet' => $row['fleet'], 'ship' => $row['ship'], 'fit'=> $row['fit'], 'name' => $row['name'], 'system' => $row['location'], 'station' => $row['station'], 'bfc' => $row['bfc']);
+        }
+        foreach ($fleetmembers as $member) {
+            $this->members[] = array('id' => $member->getCharacterId(),
+                                     'backupfc' => false,
+                                     'joined' => $member->getJoinTime(),
+                                     'role' => $member->getRole(),
+                                     'ship' => $member->getShipTypeId(),
+                                     'system' => $member->getSolarSystemId(),
+                                     'station' => $member->getStationId(),
+                                     'structure' => null,
+                                     'wing' => $member->getWingId(),
+                                     'squad' => $member->getSquadId(),
+                                     'fleetwarp' => $member->getTakesFleetWarp() );
+        }
+        foreach($this->members as $i => $m) {
+            if (isset($dbmembers[$m['id']])) {
+                if ($dbmembers[$m['id']]['name'] != null && $dbmembers[$m['id']]['name'] != '') {
+                    $this->members[$i]{'name'} = $dbmembers[$m['id']]['name'];
+                }
+                $m['backupfc'] = $this->members[$i]['backupfc'] = $dbmembers[$m['id']]['bfc'];
+                $sql = "UPDATE fleetmembers SET fleetID={$this->fleetID}, wingID={$m['wing']}, squadID={$m['squad']},role='{$m['role']}',fleetWarp={$m['fleetwarp']} WHERE characterID={$m['id']}";
+                $qry->query($sql);
+                if ($m['system'] != $dbmembers[$m['id']]['system'] || $m['station'] != $dbmembers[$m['id']]['station']) {
+                    if ($m['ship'] != $dbmembers[$m['id']]['ship']) {
+                        $sql="UPDATE pilots SET locationID='{$m['system']}',shipTypeID={$m['ship']},stationID='{$m['station']}',
+                              structureID='',fitting=NULL,lastFetch=NOW() WHERE characterID={$m['id']}"; 
+                    } else {
+                        $sql="UPDATE pilots SET locationID='{$m['system']}',stationID='{$m['station']}',
+                              structureID='',lastFetch=NOW() WHERE characterID={$m['id']}";
+                        $m['fit'] = $this->members[$i]['fit'] = $dbmembers[$m['id']]['fit'];
+                    }
+                } elseif ($m['ship'] != $dbmembers[$m['id']]['ship']) {
+                    $sql="UPDATE pilots SET shipTypeID={$m['ship']},fitting=NULL,lastFetch=NOW() WHERE characterID={$m['id']}";
+                }
+                $qry->query($sql);
+                unset($dbmembers[$m['id']]);
+                if ($m['role'] = 'fleet_commander') {
+                    $this->fc = $m['id'];
+                }
+            } else {
+                    $esiapi = new ESIAPI();
+                    $charapi = new CharacterApi($esiapi);
+                    try {
+                        $charinfo = json_decode($charapi->getCharactersCharacterId($m['id'], 'tranquility'));
+                        $characterName = $charinfo->name;
+                        $m['name'] = $this->members[$i]['name'] = $characterName;
+                    } catch (Exception $e) {
+                        $m['name'] = $this->members[$i]['name'] = null;
+                    }
+                    $sql = "REPLACE INTO fleetmembers (characterID, fleetID, backupfc, wingID, squadID, role, fleetWarp, joined)
+                            VALUES ({$m['id']},{$this->fleetID},FALSE,{$m['wing']},{$m['squad']},'{$m['role']}', {$m['fleetwarp']},'".$m['joined']->format('Y-m-d H:i:s')."')";
+                    $qry->query($sql);
+                    $sql = "REPLACE INTO pilots (characterID,characterName,locationID,shipTypeID,stationID,structureID,fitting,lastFetch) VALUES ({$m['id']},'{$m['name']}',{$m['system']},{$m['ship']},'{$m['station']}',NULL,NULL,NOW())";
+                    $qry->query($sql);
+            }
+        }
+        if (count($dbmembers)) {
+            $dbleft = array_keys($dbmembers);
+            $sql="DELETE FROM fleetmembers WHERE (characterID=".implode(" OR characterID=", $dbleft).") AND fleetID =".$this->fleetID;
+            $qry->query($sql);
+        }
+        $sql = "UPDATE fleets SET fc={$this->fc}, lastFetch=NOW() WHERE fleetID =".$this->fleetID;
+        $qry->query($sql);
+        return true;
     }
 
     public function getFleetID() {

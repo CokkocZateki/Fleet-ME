@@ -27,6 +27,10 @@ class DB extends mysqli
         $this->autocommit(TRUE);
     }
 
+    public function __destruct() {
+         $this->close();
+    }
+
     public static function getConnection() {
         if( !self::$instance ) {
             self::$instance = new self(); 

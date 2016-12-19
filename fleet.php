@@ -1,4 +1,5 @@
 <?php
+$start_time = microtime(true);
 require_once('auth.php');
 require_once('config.php');
 require_once('loadclasses.php');
@@ -20,6 +21,10 @@ if(!isset($_SESSION['fleetID'])) {
     exit;
   } else {
     $_SESSION['fleetID'] = $fleet->getFleetID();
+    if (!$fleet->update() || $fleet->getError()) {
+      $page->setError($fleet->getMessage());
+      $page->display();
+    }
   }
 } else {
   $fleet = new ESIFLEET($_SESSION['fleetID'], $_SESSION['characterID']);
@@ -28,7 +33,60 @@ if(!isset($_SESSION['fleetID'])) {
     $page->display();
     exit;  
   }
+  if ($fleet) {
+    if (!$fleet->update() || $fleet->getError()) {
+      $page->setError($fleet->getMessage());
+      $page->display();
+      exit;
+    }
+  }
 }
+
+function getFleetTable($fleet) {
+    $_SESSION['ajtoken'] = EVEHELPERS::random_str(32);
+    $members = $fleet->getMembers();
+    $locationDict = EVEHELPERS::getSystemNames(array_column($members, 'system'));
+    $shipDict = EVEHELPERS::getInvNames(array_column($members, 'ship'));
+    $table = '<table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Pilot</th>
+          <th>Location</th>
+          <th>Ship</th>
+          <th>Fit</th>
+          <th>backupfc</th>
+        </tr>
+      </thead>';
+      foreach ($members as $m) {
+          $table .='<tr id='.$m['id'].'>';
+          $table .='<td>'.$m['name'].'</td><td>'.$locationDict[$m['system']].'</td><td>'.$shipDict[$m['ship']].'</td><td>'.$m['fit'].'</td><td><input type="checkbox" value="" '.(($m['backupfc']) ? 'checked ':'').'onchange="backupfc(this)"></td>';
+          $table .='</tr>';
+      }
+      $table .='<tbody>
+      </tbody>
+    </table>
+    <script>
+        function backupfc(cb) {
+            var id = $(cb).closest("tr").attr("id");
+            var state = cb.checked;
+            $.ajax({
+                type: "POST",
+                url: "'.URL::url_path().'aj_backupfc.php",
+                data: {"fid" : '.$fleet->getFleetID().', "cid" : id, "ajtok" : "'.$_SESSION['ajtoken'].'", "state" : state},
+                success:function(data)
+                {
+                  if (data !== "true") {
+                      alert("something went wrong");
+                  }
+                }
+                }); 
+        }
+    </script>';
+    return $table;
+}
+
+$page->addBody(getFleetTable($fleet));
+$page->setBuildTime(number_format(microtime(true) - $start_time, 3));
 $page->display();
 exit;
 ?>
