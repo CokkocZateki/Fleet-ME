@@ -16,7 +16,7 @@ if (!isset($_SESSION['characterID'])) {
 if(!isset($_SESSION['fleetID'])) {
   $fleet = ESIFLEET::getFleetForChar($_SESSION['characterID']);
   if (!$fleet) {
-    $page->setError("Could not find a fleet");
+    $page->setError("Could not find a fleet for ".$_SESSION['characterName']);
     $page->display();
     exit;
   } else {
@@ -45,21 +45,34 @@ if(!isset($_SESSION['fleetID'])) {
 function getFleetTable($fleet) {
     $_SESSION['ajtoken'] = EVEHELPERS::random_str(32);
     $members = $fleet->getMembers();
+    $modcolumns = array_keys(FITTING::getModGroups());
     $locationDict = EVEHELPERS::getSystemNames(array_column($members, 'system'));
     $shipDict = EVEHELPERS::getInvNames(array_column($members, 'ship'));
-    $table = '<table id="fleettable" class="table table-striped table-hover" cellspacing="0" width="100%">
+    $table = '<table id="fleettable" class="small table table-striped table-hover" cellspacing="0" width="100%">
       <thead>
         <tr>
           <th>Pilot</th>
           <th>Location</th>
-          <th>Ship</th>
-          <th class="no-sort">Fit</th>
-          <th class="no-sort">backupfc</th>
+          <th>Ship</th>';
+          foreach($modcolumns as $mc) {
+              $table .='<th class="mod-header no-sort"><img class="mod-column" src="img/col_headers/'.$mc.'.png"></th>';
+          }
+          $table .='<th class="no-sort">backupfc</th>
         </tr>
       </thead>';
       foreach ($members as $m) {
           $table .='<tr id='.$m['id'].'>';
-          $table .='<td>'.$m['name'].'</td><td>'.$locationDict[$m['system']].'</td><td>'.$shipDict[$m['ship']].'</td><td>'.$m['fit'].'</td><td><input type="checkbox" value="" '.(($m['backupfc']) ? 'checked ':'').'onchange="backupfc(this)"></td>';
+          $table .='<td>'.$m['name'].'</td><td>'.$locationDict[$m['system']].'</td><td>'.$shipDict[$m['ship']].'</td>';
+          if ($m['fit'] != null && $m['fit'] != '') {
+              foreach(FITTING::getModGroups(json_decode($m['fit'], true)) as $mc) {
+                 $table .='<td align="center">'.$mc.'</td>';
+              }
+          } else {
+              foreach($modcolumns as $mc) {
+                  $table .='<td></td>';
+              } 
+          }
+          $table .='<td><input type="checkbox" value="" '.(($m['backupfc']) ? 'checked ':'').'onchange="backupfc(this)"></td>';
           $table .='</tr>';
       }
       $table .='<tbody>
@@ -92,6 +105,10 @@ $page->addFooter('<script>$(document).ready(function() {
                        "bSortable" : false,
                        "aTargets" : [ "no-sort" ]
                    } ],
+                   fixedHeader: {
+                       header: true,
+                       footer: true
+                   },
                });
         });
     </script>
@@ -99,7 +116,9 @@ $page->addFooter('<script>$(document).ready(function() {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/js/jquery.dataTables.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/js/dataTables.bootstrap.min.js"></script>');
 
-$page->addBody(getFleetTable($fleet));
+if ($_SESSION['characterID'] == $fleet->getBoss() || $_SESSION['characterID'] == $fleet->getFC() || $fleet->isPublic()) {
+    $page->addBody(getFleetTable($fleet));
+}
 $page->setBuildTime(number_format(microtime(true) - $start_time, 3));
 $page->display();
 exit;

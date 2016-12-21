@@ -1,5 +1,6 @@
 <?php
 include_once('config.php');
+include_once('classes/class.esipilot.php');
 
 class FITTING
 {
@@ -116,17 +117,102 @@ class FITTING
         }
     }
     
-    public static function getCharFit($characterID) {
+    public static function getCharFit($characterID, $dbonly=false) {
         $qry = DB::getConnection();
         $sql="SELECT fitting FROM pilots WHERE characterID = ".$characterID;
         $result = $qry->query($sql);
         if($result->num_rows) {
+            if (!$dbonly) {
+                $esipilot = new ESIPILOT($_SESSION['characterID']);
+            }
             $row = $result->fetch_row();
             $fitting = json_decode($row[0], True);
             return $fitting;
         } else {
             return null;
         } 
+    }
+
+    public static function getModGroups($fitting=null) {
+        $gids = array();
+        $f['ab'] = 0;
+        $f['mwd'] = 0;
+        $f['scram'] = 0;
+        $f['disrupt'] = 0;
+        $f['dis_field'] = 0;
+        $f['web'] = 0;
+        $f['grap'] = 0;
+        $f['td'] = 0;
+        $f['damp'] = 0;
+        $f['paint'] = 0;
+        $f['y_jam'] = 0;
+        $f['r_jam'] = 0;
+        $f['b_jam'] = 0;
+        $f['g_jam'] = 0;
+        $f['m_jam'] = 0;
+        if ($fitting) {
+            $qry = DB::getConnection();
+            $mods = self::flatten($fitting);
+            $sql="SELECT typeID, marketGroupID FROM invTypes WHERE typeID=".implode(" OR typeID=", $mods);
+            $result = $qry->query($sql);
+            if($result->num_rows) {
+                while($row = $result->fetch_row()) {
+                    $gid[$row[0]] = $row[1];
+                }
+                foreach ($mods as $mod) {
+                    if (isset($gid[$mod])) {
+                        switch($gid[$mod]) {
+                            case 542:
+                                $f['ab'] += 1;
+                                break;
+                            case 131:
+                                $f['mwd'] += 1;
+                                break;
+                            case 1936:
+                                $f['scram'] += 1;
+                                break;
+                            case 1935:
+                                $f['disrupt'] += 1;
+                                break;
+                            case 1085:
+                                $f['dis_field'] += 1;
+                                break;
+                            case 683:
+                                $f['web'] += 1;
+                                break;
+                            case 2154:
+                                $f['grap'] += 1;
+                                break;
+                            case 680:
+                                $f['td'] += 1;
+                                break;
+                            case 679:
+                                $f['damp'] += 1;
+                                break;
+                            case 757:
+                                $f['paint'] += 1;
+                                break;
+                            case 718:
+                                $f['y_jam'] += 1;
+                                break;
+                            case 716:
+                                $f['r_jam'] += 1;
+                                break;
+                            case 717:
+                                $f['b_yam'] += 1;
+                                break;
+                            case 715:
+                                $f['g_jam'] += 1;
+                                break;
+                            case 719:
+                                $f['m_jam'] += 1;
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+        return $f;
     }
 
     public static function getNames($fitting) {

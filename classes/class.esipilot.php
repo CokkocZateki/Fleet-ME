@@ -31,18 +31,6 @@ class ESIPILOT extends ESISSO
 
     public function __construct($characterID) {
         parent::__construct(null, $characterID);
-        /*if ($this->characterName == null) {
-            $esiapi = new ESIAPI();
-            $charapi = new CharacterApi($esiapi);
-            try {
-                $charinfo = json_decode($charapi->getCharactersCharacterId($this->characterID, 'tranquility'));
-                $this->characterName = $charinfo->name;
-            } catch (Exception $e) {
-                $this->error = true;
-                $this->message = 'Could not relove character name: '.$e->getMessage().PHP_EOL;
-                return false;
-            }
-        }*/
         $sql="SELECT * FROM pilots WHERE characterID=".$this->characterID;
         $qry = DB::getConnection();
         $result = $qry->query($sql);

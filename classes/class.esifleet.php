@@ -10,6 +10,7 @@ use Swagger\Client\Api\FleetsApi;
 
 require_once('classes/esi/autoload.php');
 require_once('classes/class.esisso.php');
+require_once('classes/class.url.php');
 
 if (session_status() != PHP_SESSION_ACTIVE) {
   session_start();
@@ -32,7 +33,7 @@ class ESIFLEET extends ESISSO
         $this->fleetID = $fleetID;        
         parent::__construct(null, $characterID);
         $qry = DB::getConnection();
-        $sql = "SELECT * FROM fleets WHERE fleetID=".$fleetID;
+        $sql = "SELECT * FROM fleets WHERE fleetID=".$fleetID." AND fleets.created >= DATE_SUB(NOW(), INTERVAL 1 DAY)";
         $result = $qry->query($sql);
         if($result->num_rows) {
             $row=$result->fetch_assoc();
@@ -79,7 +80,7 @@ class ESIFLEET extends ESISSO
             if (!$this->error) {
                 $this->boss = $characterID;
                 $this->fc = $characterID;
-                $sql = "INSERT INTO fleets (fleetID,boss,fc,created,lastFetch) VALUES ({$this->fleetID},{$this->boss},{$this->fc},NOW(),NOW())";
+                $sql = "REPLACE INTO fleets (fleetID,boss,fc,created,lastFetch) VALUES ({$this->fleetID},{$this->boss},{$this->fc},NOW(),NOW())";
                 $qry->query($sql);
                 $sql = "DELETE FROM fleetmembers WHERE fleetID=".$this->fleetID;
                 $qry->query($sql);
@@ -89,6 +90,7 @@ class ESIFLEET extends ESISSO
                                              'joined' => $member->getJoinTime(),
                                              'role' => $member->getRole(),
                                              'ship' => $member->getShipTypeId(),
+                                             'fit' => null,
                                              'system' => $member->getSolarSystemId(),
                                              'station' => $member->getStationId(),
                                              'structure' => null,
@@ -110,7 +112,7 @@ class ESIFLEET extends ESISSO
 
     public static function getFleetForChar($characterID) {
         $qry = DB::getConnection();
-        $sql = "SELECT fleets.fleetID, fleets.boss FROM fleetmembers LEFT JOIN fleets ON fleets.fleetID=fleetmembers.fleetID WHERE characterID=".$characterID;
+        $sql = "SELECT fleets.fleetID, fleets.boss FROM fleetmembers LEFT JOIN fleets ON fleets.fleetID=fleetmembers.fleetID WHERE characterID=".$characterID." AND fleets.created >= DATE_SUB(NOW(), INTERVAL 1 DAY)";
         $result = $qry->query($sql);
         if($result->num_rows) {
             $row=$result->fetch_assoc();
@@ -134,7 +136,11 @@ class ESIFLEET extends ESISSO
             $fleetmembers = $fleetapi->getFleetsFleetIdMembers($this->fleetID, 'en', 'tranquility');
         } catch (ApiException $e) {
             $this->error = true;
-            $this->message = 'Could not find Fleet: '.$e->getMessage().PHP_EOL;
+            if ($e->getCode() == 403) {
+                $this->message = 'Looks like the fleet Boss didnt register the fleet or has handed over fleet boss. If you\'re fleet boss register the fleet <a href="'.URL::url_path().'registerfleet.php">here</a>.';
+            } else {
+                $this->message = 'Could not refresh your last Fleet: '.$e->getMessage().PHP_EOL;
+            }
             return false;
         }
         $this->members = array();
@@ -152,6 +158,7 @@ class ESIFLEET extends ESISSO
                                      'joined' => $member->getJoinTime(),
                                      'role' => $member->getRole(),
                                      'ship' => $member->getShipTypeId(),
+                                     'fit' => null,
                                      'system' => $member->getSolarSystemId(),
                                      'station' => $member->getStationId(),
                                      'structure' => null,

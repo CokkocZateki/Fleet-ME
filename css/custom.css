@@ -55,3 +55,12 @@ body {
   padding-bottom: .5rem;
   margin-bottom: 0;
 }
+
+.table > thead > tr > th.mod-header {
+  padding: 5px;
+  width: 22px;
+}
+
+img.mod-column {
+  height: 20px;
+}

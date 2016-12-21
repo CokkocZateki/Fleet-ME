@@ -95,12 +95,33 @@ if ($fitting) {
   $html .= '</blockquote></div></div></div>';
 }
 
-$html .= '<div class="col-xs-12 col-md-6 col-lg-4"><form action="" method=post>
-  <div class="form-group col-xs-12">
-    <div class="row"><textarea class="form-control" rows="15" name="fitting" id="fitting" placeholder="Paste your fitting"></textarea><br/></div>
-    <div class="row"><button type="submit" class="btn btn-primary">Submit</button></div>
+$html .= '<div class="col-xs-12 col-md-6 col-lg-4">
+    <ul class="nav nav-tabs">
+      <li class="active"><a data-toggle="tab" href="#post">Post</a></li>
+      <li><a data-toggle="tab" href="#help">How to</a></li>
+    </ul>
+  <div class="tab-content">
+  <div id="post" class="tab-pane fade in active">
+    <form action="" method=post>
+      <div class="form-group col-xs-12">
+        <div class="row"><textarea class="form-control" rows="15" name="fitting" id="fitting" placeholder="Paste your fitting"></textarea><br/></div>
+        <div class="row"><button type="submit" class="btn btn-primary">Submit</button></div>
+      </div>
+    </form>
   </div>
-</form></div></div>';
+  <div id="help" class="tab-pane fade">
+    <h5>How to copy a fit<h5>
+    <div class="row">
+      <div class="col-xs-12">
+      <p class="small">Open the Fitting window and drag your ship name to (any) chat, no need to post it.</p>
+      <img class="img-responsive" src="img/postfit1.jpg"><br/>
+      <p class="small">Click the copied ship name to open the fit and press the export button.</p>
+      <img class="img-responsive" src="img/postfit2.jpg">
+      </div>
+    </div>
+  </div>
+  </div>
+</div></div>';
 
 $page->addBody($html);
 $page->setBuildTime(number_format(microtime(true) - $start_time, 3));
