@@ -34,6 +34,22 @@ class EVEHELPERS {
         }
     }
 
+    public static function getInvGroupNames($items) {
+        $qry = DB::getConnection();
+        $sql="SELECT invTypes.typeID, invGroups.groupName FROM invTypes LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID
+              WHERE typeID=".implode(" OR typeID=", self::flatten($items));
+        $result = $qry->query($sql);
+        $return = array();
+        if($result->num_rows) {
+            while ($row = $result->fetch_assoc()) {
+                $return[$row['typeID']] = $row['groupName'];
+            }
+            return $return;
+        } else {
+            return null;
+        }
+    }
+
     public static function getSystemNames($items) {
         $qry = DB::getConnection();
         $sql="SELECT solarSystemID, solarSystemName FROM mapSolarSystems WHERE solarSystemID=".implode(" OR solarSystemID=", self::flatten($items));

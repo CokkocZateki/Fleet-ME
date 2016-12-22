@@ -11,6 +11,7 @@ if (session_status() != PHP_SESSION_ACTIVE) {
 $page = new Page('Ship fitting');
 
 if (!isset($_SESSION['characterID'])) {
+  header('Location: '.URL::url_path().'login.php?login=member&page=fitting.php');
   $page->setError("You are not logged in.");
   $page->display();
   exit;

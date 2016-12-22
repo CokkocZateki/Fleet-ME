@@ -18,13 +18,6 @@ function random_str($length, $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzAB
 }
 
 if (isset($_GET['code'])) {
-  /*if (isset($_SESSION['characterID'])) {
-      $page = new Page('SSO Login');
-      $html = "Error: Code was used already.";
-      $page->setError($html);
-      $page->display();
-      exit;
-  }*/
   $code = $_GET['code'];
   $state = $_GET['state'];
   if ($state != $_SESSION['authstate']) {
@@ -45,6 +38,10 @@ if (isset($_GET['code'])) {
         $authtoken = new AUTHTOKEN(null, $_SESSION['characterID']);
         $authtoken->addToDb();
         $authtoken->storeCookie();
+        if (isset($_GET['page'])) {
+            header('Location: '.URL::url_path().$_GET['page']);
+            exit;
+        }
         $page = new Page('SSO Login');
         $page->setInfo($esisso->getMessage());
         $page->display();
@@ -102,7 +99,7 @@ if (isset($_GET['login'])) {
   $authurl = "https://login.eveonline.com/oauth/authorize/";
   $state = random_str(32);
   $_SESSION['authstate'] = $state;
-  $url = $authurl."?response_type=code&redirect_uri=".URL::full_url()."&client_id=".ESI_ID."&scope=".implode(' ',$scopes)."&state=".$state;
+  $url = $authurl."?response_type=code&redirect_uri=".rawurlencode(URL::full_url())."&client_id=".ESI_ID."&scope=".implode(' ',$scopes)."&state=".$state;
   header('Location: '.$url);
   exit;
 }
