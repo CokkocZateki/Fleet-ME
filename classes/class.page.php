@@ -18,7 +18,7 @@ class Page {
     public function __construct($title) {
         $this->title = $title;
         if (!isset($_SESSION['characterID'])) {
-            $this->addMenuItem('<span class="glyphicon glyphicon-user"></span> Login', array('Fleet member login' => 'login.php?login=member', 'Register Fleet' => 'login.php?login=fc'));
+            $this->addMenuItem('<span class="glyphicon glyphicon-user"></span> Login', array('Fleet member login' => 'login.php?login=member', 'Register Fleet' => 'login.php?login=fc&page=fleet.php'));
         } else {
             $this->addMenuItem('<span class="glyphicon glyphicon-plus-sign"></span> Register Fleet', 'registerfleet.php');
             $this->addMenuItem('<span class="glyphicon glyphicon-send"></span> My fit', 'fitting.php');

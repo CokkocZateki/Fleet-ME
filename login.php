@@ -38,11 +38,10 @@ if (isset($_GET['code'])) {
         $authtoken = new AUTHTOKEN(null, $_SESSION['characterID']);
         $authtoken->addToDb();
         $authtoken->storeCookie();
-        if (isset($_GET['page'])) {
-            header('Location: '.URL::url_path().$_GET['page']);
-            exit;
-        }
         $page = new Page('SSO Login');
+        if (isset($_GET['page'])) {
+            $page->addHeader('<meta http-equiv="refresh" content="2;url='.URL::url_path().$_GET['page'].'">');
+        }
         $page->setInfo($esisso->getMessage());
         $page->display();
         exit;
@@ -60,8 +59,11 @@ if (isset($_GET['login'])) {
     if (!isset($_GET['fleetlink'])) {
         $html = '<form action="" method="get">
             <div class="form-group col-xs-12 col-md-6">
-              <input type="hidden" name="login" value="fc">
-              <div class="input-group row">
+              <input type="hidden" name="login" value="fc">';
+              if (isset($_GET['page'])) {
+                  $html .= '<input type="hidden" name="page" value="'.$_GET['page'].'">';
+              }
+              $html .= '<div class="input-group row">
                 <span class="input-group-addon"><i class="glyphicon glyphicon-knight"></i></span>
                 <input class="form-control" type="text" id="fleetlink" name="fleetlink" placeholder="Paste your external fleet link.">
               </div>

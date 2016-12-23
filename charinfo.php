@@ -9,6 +9,7 @@ if (session_status() != PHP_SESSION_ACTIVE) {
 }
 
 if (!isset($_SESSION['characterID'])) {
+  header('Location: '.URL::url_path().'login.php?login=member&page=charinfo.php');
   $page = new Page('Character Info');
   $page->setError("You are not logged in.");
   $page->display();
