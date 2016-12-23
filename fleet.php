@@ -43,13 +43,16 @@ if(!isset($_SESSION['fleetID'])) {
 }
 
 if ($_SESSION['characterID'] == $fleet->getBoss()) {
-   $page->addBody(getFleetHeader(true));
+   $page->addBody(getFleetHeader($fleet, true));
 } elseif ($_SESSION['characterID'] == $fleet->getFC()) {
-   $page->addBody(getFleetHeader(false));
+   $page->addBody(getFleetHeader($fleet, false));
 }
 
-if ($_SESSION['characterID'] == $fleet->getBoss() || $_SESSION['characterID'] == $fleet->getFC() || $fleet->isPublic()) {
-    $page->addBody(getFleetTable($fleet));
+if ($_SESSION['characterID'] == $fleet->getBoss() || $_SESSION['characterID'] == $fleet->getFC()) {
+    $page->addBody(getFleetTable($fleet, true));
+    $page->addFooter(getScriptFooter());
+} elseif ($fleet->isPublic()) {
+    $page->addBody(getFleetTable($fleet, false));
     $page->addFooter(getScriptFooter());
 }
 $page->setBuildTime(number_format(microtime(true) - $start_time, 3));
@@ -57,11 +60,36 @@ $page->display();
 exit;
 
 function getFleetHeader($fleet, $isBoss=false) {
-    return;
+    if (!isset($_SESSION['ajtoken'])) {
+        $_SESSION['ajtoken'] = EVEHELPERS::random_str(32);
+    }
+    $fh = '<h5>Fleet options</h5>
+           <div class="row">
+             <div class="checkbox col-xs-12 col-lg-4"><label><input type="checkbox" value="" '.($fleet->isPublic() ? 'checked ':'').'onchange="setpublic(this)">Comp visible to members</label></div>
+           </div>';
+    $fh .= '<script>
+        function setpublic(cb) {
+            var state = cb.checked;
+            $.ajax({
+                type: "POST",
+                url: "'.URL::url_path().'aj_public.php",
+                data: {"fid" : '.$fleet->getFleetID().', "ajtok" : "'.$_SESSION['ajtoken'].'", "state" : state},
+                success:function(data)
+                {
+                  if (data !== "true") {
+                      alert("something went wrong");
+                  }
+                }
+                });
+        }
+    </script>';
+    return $fh;
 }
 
-function getFleetTable($fleet) {
-    $_SESSION['ajtoken'] = EVEHELPERS::random_str(32);
+function getFleetTable($fleet, $hasRights=false) {
+    if (!isset($_SESSION['ajtoken'])) {
+        $_SESSION['ajtoken'] = EVEHELPERS::random_str(32);
+    }
     $members = $fleet->getMembers();
     $modcolumns = array_keys(FITTING::getModGroups());
     $locationDict = EVEHELPERS::getSystemNames(array_column($members, 'system'));
@@ -77,8 +105,10 @@ function getFleetTable($fleet) {
           foreach($modcolumns as $mc) {
               $table .='<th class="mod-header no-sort"><img class="mod-column" src="img/col_headers/'.$mc.'.png"></th>';
           }
-          $table .='<th class="no-sort">backupfc</th>
-        </tr>
+          if ($hasRights) {
+              $table .='<th style="text-align: center" class="no-sort">backupfc</th>';
+          }
+        $table .='</tr>
       </thead>
       <tfoot>
         <tr>
@@ -104,12 +134,14 @@ function getFleetTable($fleet) {
                   $table .='<td></td>';
               } 
           }
-          $table .='<td align="center"><input type="checkbox" value="" '.(($m['backupfc']) ? 'checked ':'').'onchange="backupfc(this)"></td>';
+          if ($hasRights) {
+              $table .='<td align="center"><input type="checkbox" value="" '.(($m['backupfc']) ? 'checked ':'').'onchange="backupfc(this)"></td>';
+          }
           $table .='</tr>';
       }
-      $table .='</tbody>
-    </table>
-    <script>
+      $table .='</tbody></table>';
+    if ($hasRights) {
+        $table .='<script>
         function backupfc(cb) {
             var id = $(cb).closest("tr").attr("id");
             var state = cb.checked;
@@ -125,7 +157,8 @@ function getFleetTable($fleet) {
                 }
                 }); 
         }
-    </script>';
+        </script>';
+    }
     return $table;
 }
 
