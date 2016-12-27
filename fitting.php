@@ -99,7 +99,7 @@ if ($fitting) {
 $html .= '<div class="col-xs-12 col-md-6 col-lg-4">
     <ul class="nav nav-tabs">
       <li class="active"><a data-toggle="tab" href="#post">Post</a></li>
-      <li><a data-toggle="tab" href="#help">How to</a></li>
+      <li><a data-toggle="tab" href="#help">Help</a></li>
     </ul>
   <div class="tab-content">
   <div id="post" class="tab-pane fade in active">
@@ -116,7 +116,7 @@ $html .= '<div class="col-xs-12 col-md-6 col-lg-4">
       <div class="col-xs-12">
       <p class="small">Open the Fitting window and drag your ship name to (any) chat, no need to post it.</p>
       <img class="img-responsive" src="img/postfit1.jpg"><br/>
-      <p class="small">Click the copied ship name to open the fit and press the export button.</p>
+      <p class="small">Click the copied ship name to open the fit and press the "Copy to clipboard" button.</p>
       <img class="img-responsive" src="img/postfit2.jpg">
       </div>
     </div>

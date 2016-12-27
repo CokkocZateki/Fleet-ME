@@ -13,32 +13,25 @@ if (!isset($_SESSION['characterID'])) {
 }
 
 
-if(!isset($_SESSION['fleetID'])) {
-  $fleet = ESIFLEET::getFleetForChar($_SESSION['characterID']);
-  if (!$fleet) {
-    $page->setWarning("Could not find a fleet for ".$_SESSION['characterName']);
-    $page->display();
-    exit;
-  } else {
-    $_SESSION['fleetID'] = $fleet->getFleetID();
-    if (!$fleet->update() || $fleet->getError()) {
-      $page->setError($fleet->getMessage());
-      $page->display();
-    }
-  }
+$fleet = ESIFLEET::getFleetForChar($_SESSION['characterID']);
+if (!$fleet) {
+  $page->setWarning("Could not find a fleet for ".$_SESSION['characterName']);
+  $page->display();
+  exit;
 } else {
-  $fleet = new ESIFLEET($_SESSION['fleetID'], $_SESSION['characterID']);
-  if ($fleet->getError()) {
+  $_SESSION['fleetID'] = $fleet->getFleetID();
+  if (!$fleet->update() || $fleet->getError()) {
     $page->setError($fleet->getMessage());
     $page->display();
-    exit;  
   }
-  if ($fleet) {
-    if (!$fleet->update() || $fleet->getError()) {
-      $page->setError($fleet->getMessage());
-      $page->display();
-      exit;
-    }
+}
+
+$page->addBody("<blockquote class='blockquote small'><p id='motd'>MOTD:<br/>".$fleet->getMotd()."</p></blockquote>");
+
+$backupfc = false;
+foreach ($fleet->getMembers() as $member) {
+  if ($member['id'] == $_SESSION['characterID']) {
+    $backupfc = $member['backupfc'];
   }
 }
 
@@ -51,7 +44,7 @@ if ($_SESSION['characterID'] == $fleet->getBoss()) {
 if ($_SESSION['characterID'] == $fleet->getBoss() || $_SESSION['characterID'] == $fleet->getFC()) {
     $page->addBody(getFleetTable($fleet, true));
     $page->addFooter(getScriptFooter());
-} elseif ($fleet->isPublic()) {
+} elseif ($fleet->isPublic() || $backupfc) {
     $page->addBody(getFleetTable($fleet, false));
     $page->addFooter(getScriptFooter());
 }
@@ -63,9 +56,13 @@ function getFleetHeader($fleet, $isBoss=false) {
     if (!isset($_SESSION['ajtoken'])) {
         $_SESSION['ajtoken'] = EVEHELPERS::random_str(32);
     }
+    $motd = $fleet->getMotd();
+    $fleetlink = URL::url_path().'fitting.php';
     $fh = '<h5>Fleet options</h5>
            <div class="row">
-             <div class="checkbox col-xs-12 col-lg-4"><label><input type="checkbox" value="" '.($fleet->isPublic() ? 'checked ':'').'onchange="setpublic(this)">Comp visible to members</label></div>
+             <div class="col-xs-12 col-lg-4"><div class="checkbox"><label><input type="checkbox" value="" '.($fleet->isPublic() ? 'checked ':'').'onchange="setpublic(this)">Comp visible to members</label></div></div>
+             <div class="col-xs-12 col-lg-4"><div class="checkbox"><label><input type="checkbox" value="" '.($fleet->getFreemove() ? 'checked ':'').'onchange="setfreemove(this)">Freemove</label></div></div>
+             <div class="col-xs-12 col-lg-4"><div class="checkbox"><label><input type="checkbox" value="" '.(strpos($motd, $fleetlink) ? 'checked ':'').'onchange="setmotd(this)">Fleet-Yo Link in motd</label></div></div>
            </div>';
     $fh .= '<script>
         function setpublic(cb) {
@@ -78,6 +75,36 @@ function getFleetHeader($fleet, $isBoss=false) {
                 {
                   if (data !== "true") {
                       alert("something went wrong");
+                  }
+                }
+                });
+        }
+        function setfreemove(cb) {
+            var state = cb.checked;
+            $.ajax({
+                type: "POST",
+                url: "'.URL::url_path().'aj_freemove.php",
+                data: {"fid" : '.$fleet->getFleetID().', "ajtok" : "'.$_SESSION['ajtoken'].'", "state" : state},
+                success:function(data)
+                {
+                  if (data !== "true") {
+                      alert("something went wrong");
+                  }
+                }
+                });
+        }
+        function setmotd(cb) {
+            var state = cb.checked;
+            $.ajax({
+                type: "POST",
+                url: "'.URL::url_path().'aj_motd.php",
+                data: {"fid" : '.$fleet->getFleetID().', "ajtok" : "'.$_SESSION['ajtoken'].'", "state" : state, "motd" : "blabala"},
+                success:function(data)
+                {
+                  if (data == "false") {
+                      alert("something went wrong");
+                  } else {
+                      $( "#motd" ).html("MOTD:<br/>"+data);
                   }
                 }
                 });

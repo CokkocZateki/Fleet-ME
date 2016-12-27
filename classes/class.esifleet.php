@@ -27,6 +27,8 @@ class ESIFLEET extends ESISSO
     protected $public = false;
     protected $created = null;
     protected $lastFetch = null;
+    protected $freemove = false;
+    protected $motd = null;
     
 
     public function __construct($fleetID, $characterID, $dbonly=false) {
@@ -79,9 +81,8 @@ class ESIFLEET extends ESISSO
             }
             if (!$this->error) {
                 $this->boss = $characterID;
-                $this->fc = $characterID;
-                $sql = "REPLACE INTO fleets (fleetID,boss,fc,created,lastFetch) VALUES ({$this->fleetID},{$this->boss},{$this->fc},NOW(),NOW())";
-                $qry->query($sql);
+                $this->freemove = $fleetinfo->getIsFreeMove();
+                $this->motd = $fleetinfo->getMotd();
                 $sql = "DELETE FROM fleetmembers WHERE fleetID=".$this->fleetID;
                 $qry->query($sql);
                 foreach ($fleetmembers as $member) {
@@ -97,8 +98,12 @@ class ESIFLEET extends ESISSO
                                              'wing' => $member->getWingId(),
                                              'squad' => $member->getSquadId(),
                                              'fleetwarp' => $member->getTakesFleetWarp() );
-                    
+                    if ($member->getRole() == 'fleet_commander') {
+                        $this->fc = $member->getCharacterId();
+                    }
                 }
+                $sql = "REPLACE INTO fleets (fleetID,boss,fc,created,lastFetch) VALUES ({$this->fleetID},{$this->boss},{$this->fc},NOW(),NOW())";
+                $qry->query($sql);
                 foreach($this->members as $m) {
                     $sql = "REPLACE INTO fleetmembers (characterID, fleetID, backupfc, wingID, squadID, role, fleetWarp, joined)
                            VALUES ({$m['id']},{$this->fleetID},FALSE,{$m['wing']},{$m['squad']},'{$m['role']}', {$m['fleetwarp']},'".$m['joined']->format('Y-m-d H:i:s')."')";
@@ -137,12 +142,14 @@ class ESIFLEET extends ESISSO
         } catch (ApiException $e) {
             $this->error = true;
             if ($e->getCode() == 403) {
-                $this->message = 'Looks like the fleet Boss didnt register the fleet or has handed over fleet boss. If you\'re fleet boss register the fleet <a href="'.URL::url_path().'registerfleet.php">here</a>.';
+                $this->message = 'Looks like the fleet Boss dropped the fleet or has handed over fleet boss. If you\'re fleet boss register the fleet <a href="'.URL::url_path().'registerfleet.php">here</a>.';
             } else {
                 $this->message = 'Could not refresh your last Fleet: '.$e->getMessage().PHP_EOL;
             }
             return false;
         }
+        $this->freemove = $fleetinfo->getIsFreeMove();
+        $this->motd = $fleetinfo->getMotd();
         $this->members = array();
         $dbmembers = array();
         $qry = DB::getConnection();
@@ -188,7 +195,7 @@ class ESIFLEET extends ESISSO
                 }
                 $qry->query($sql);
                 unset($dbmembers[$m['id']]);
-                if ($m['role'] = 'fleet_commander') {
+                if ($m['role'] == 'fleet_commander') {
                     $this->fc = $m['id'];
                 }
             } else {
@@ -242,5 +249,12 @@ class ESIFLEET extends ESISSO
         return $this->members;
     }
 
+    public function getMotd() {
+        return $this->motd;
+    }
+
+    public function getFreemove() {
+        return $this->freemove;
+    }
 }
 ?>

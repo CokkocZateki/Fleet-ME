@@ -106,9 +106,17 @@ class FITTING
                 $this->message = "Fitting updated.";
                 return true;
             } else {
-                $this->error = true;
-                $this->message = "Fitting does not match your current ship.";
-                return false;
+                $pilot = new ESIPILOT($characterID, true);
+                if ($pilot->getShipTypeID() == $this->shipID) {
+                    $sql="UPDATE pilots SET fitting='{$fit}' WHERE characterID = ".$characterID;
+                    $qry->query($sql);
+                    $this->message = "Fitting updated.";
+                    return true;
+                } else {
+                    $this->error = true;
+                    $this->message = "Fitting does not match your current ship.";
+                    return false;
+                }
             }
         } else {
             $this->error = true;

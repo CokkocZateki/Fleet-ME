@@ -29,7 +29,7 @@ class ESIPILOT extends ESISSO
     protected $fitting = null;
     protected $lastFetch = null;
 
-    public function __construct($characterID) {
+    public function __construct($characterID, $forcerefresh=false) {
         parent::__construct(null, $characterID);
         $sql="SELECT * FROM pilots WHERE characterID=".$this->characterID;
         $qry = DB::getConnection();
@@ -99,7 +99,7 @@ class ESIPILOT extends ESISSO
         } else {
             $refresh = true;
         }
-        if ($refresh) {
+        if ($refresh || $forcerefresh) {
             if (!isset($esiapi)) {
                 $esiapi = new ESIAPI();
             }
