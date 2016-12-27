@@ -39,6 +39,22 @@ if (isset($_GET['code'])) {
         $authtoken->addToDb();
         $authtoken->storeCookie();
         $page = new Page('SSO Login');
+        if (isset($_SESSION['fleetID']) && (count(FC_PILOTS) || count(FC_CORPS) || count(FC_ALLYS))) {
+            $allowed=false;
+            if (in_array($_SESSION['characterID'], FC_PILOTS)) {
+                $allowed=true;
+            } elseif (in_array($corpID = ESIPILOT::getCorpForChar($_SESSION['characterID']), FC_CORPS)) {
+                $allowed=true;
+            } elseif (in_array(ESIPILOT::getAllyForCorp($corpID), FC_ALLYS)) {
+                $allowed=true;
+            }
+            if (!$allowed) {
+                unset($_SESSION['fleetID']);
+                $page->setError('Only certain Pilots, Corps or Alliances are allowed to register fleets.');
+                $page->display();
+            }
+        }
+
         if (isset($_GET['page'])) {
             $page->addHeader('<meta http-equiv="refresh" content="2;url='.URL::url_path().$_GET['page'].'">');
         }

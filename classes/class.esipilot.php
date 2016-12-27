@@ -7,6 +7,7 @@ use Swagger\Client\ApiException;
 use Swagger\Client\Api\CharacterApi;
 use Swagger\Client\Api\LocationApi;
 use Swagger\Client\Api\UniverseApi;
+use Swagger\Client\Api\CorporationApi;
 
 require_once('classes/esi/autoload.php');
 require_once('classes/class.esisso.php');
@@ -104,7 +105,7 @@ class ESIPILOT extends ESISSO
                 $esiapi = new ESIAPI();
             }
             $esiapi->setAccessToken($this->accessToken);
-            $locationapi = new LocationApi();
+            $locationapi = new LocationApi($esiapi);
             try {
                 $locationinfo = json_decode($locationapi->getCharactersCharacterIdLocation($this->characterID, 'tranquility'));
                 $this->locationID = $locationinfo->solar_system_id;
@@ -142,7 +143,7 @@ class ESIPILOT extends ESISSO
                             $esiapi = new ESIAPI();
                         }
                         $esiapi->setAccessToken($this->accessToken);
-                        $universeapi = new UniverseApi();
+                        $universeapi = new UniverseApi($esiapi);
                         $structureinfo = json_decode($universeapi->getUniverseStructuresStructureId($this->structureID, 'tranquility'));
                         $this->stationName = $structureinfo->name;
                         $sql="INSERT INTO structures (solarSystemID,structureID,structureName,lastUpdate) VALUES ({$structureinfo->solar_system_id},{$this->structureID},'{$this->stationName}',NOW())";
@@ -220,5 +221,32 @@ class ESIPILOT extends ESISSO
                 return $this->shipName;
         }
 
+        public static function getCorpForChar($characterID) {
+            $esiapi = new ESIAPI();
+            $charapi = new CharacterApi($esiapi);
+            try {
+                $charinfo = json_decode($charapi->getCharactersCharacterId($characterID, 'tranquility'));
+                $corpID = $charinfo->corporation_id;
+            } catch (Exception $e) {
+                $corpID = null;
+            }
+            return $corpID;
+        }
+
+        public static function getAllyForCorp($corpID) {
+            $esiapi = new ESIAPI();
+            $corpapi = new CorporationApi($esiapi);
+            try {
+                $corpinfo = json_decode($corpapi->getCorporationsCorporationId($corpID, 'tranquility'));
+                if (isset($corpinfo->alliance_id)) {
+                    $allyID = $corpinfo->alliance_id;
+                } else {
+                    $allyID = null;
+                }
+            } catch (Exception $e) {
+                $allyID = null;
+            }
+            return $allyID;
+        }
 }
 ?>

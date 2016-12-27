@@ -11,6 +11,22 @@ if (!isset($_SESSION['characterID'])) {
   exit;
 }
 
+if (count(FC_PILOTS) || count(FC_CORPS) || count(FC_ALLYS)) {
+    $allowed=false;
+    if (in_array($_SESSION['characterID'], FC_PILOTS)) {
+        $allowed=true;
+    } elseif (in_array($corpID = ESIPILOT::getCorpForChar($_SESSION['characterID']), FC_CORPS)) {
+        $allowed=true;
+    } elseif (in_array(ESIPILOT::getAllyForCorp($corpID), FC_ALLYS)) {
+        $allowed=true;
+    }
+    if (!$allowed) {
+        $page->setError('Only certain Pilots, Corps or Alliances are allowed to register fleets.');
+        $page->display();
+        exit;
+    }
+}
+
 if (isset($_GET['fleetlink'])) {
     $fleet = new ESISSO(null, $_SESSION['characterID']);
     $scopes = $fleet->getScopes();

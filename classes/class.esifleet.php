@@ -81,6 +81,7 @@ class ESIFLEET extends ESISSO
             }
             if (!$this->error) {
                 $this->boss = $characterID;
+                $this->fc = null;
                 $this->freemove = $fleetinfo->getIsFreeMove();
                 $this->motd = $fleetinfo->getMotd();
                 $sql = "DELETE FROM fleetmembers WHERE fleetID=".$this->fleetID;
@@ -102,13 +103,14 @@ class ESIFLEET extends ESISSO
                         $this->fc = $member->getCharacterId();
                     }
                 }
-                $sql = "REPLACE INTO fleets (fleetID,boss,fc,created,lastFetch) VALUES ({$this->fleetID},{$this->boss},{$this->fc},NOW(),NOW())";
+                $sql = "REPLACE INTO fleets (fleetID,boss,fc,created,lastFetch) VALUES ({$this->fleetID},{$this->boss},'{$this->fc}',NOW(),NOW())";
                 $qry->query($sql);
                 foreach($this->members as $m) {
                     $sql = "REPLACE INTO fleetmembers (characterID, fleetID, backupfc, wingID, squadID, role, fleetWarp, joined)
                            VALUES ({$m['id']},{$this->fleetID},FALSE,{$m['wing']},{$m['squad']},'{$m['role']}', {$m['fleetwarp']},'".$m['joined']->format('Y-m-d H:i:s')."')";
                     $qry->query($sql);
                 }
+                $this->update();
             }
         } else {
             $this->fleetID = null;
@@ -153,11 +155,11 @@ class ESIFLEET extends ESISSO
         $this->members = array();
         $dbmembers = array();
         $qry = DB::getConnection();
-        $sql = "SELECT fm.fleetID as fleet, fm.characterID as id, p.shipTypeID as ship, p.fitting as fit, p.characterName as name, p.locationID as location, p.stationID as station, fm.backupfc as bfc
+        $sql = "SELECT fm.fleetID as fleet, fm.characterID as id, p.shipTypeID as ship, p.fitting as fit, p.characterName as name, p.locationID as location, p.stationID as station, fm.backupfc as bfc, p.lastFetch as lastFetch
                 FROM fleetmembers as fm LEFT JOIN pilots as p ON p.characterID=fm.characterID";
         $result = $qry->query($sql);
         while ($row = $result->fetch_assoc()) {
-            $dbmembers[$row['id']] = array('fleet' => $row['fleet'], 'ship' => $row['ship'], 'fit'=> $row['fit'], 'name' => $row['name'], 'system' => $row['location'], 'station' => $row['station'], 'bfc' => $row['bfc']);
+            $dbmembers[$row['id']] = array('fleet' => $row['fleet'], 'ship' => $row['ship'], 'fit'=> $row['fit'], 'name' => $row['name'], 'system' => $row['location'], 'station' => $row['station'], 'bfc' => $row['bfc'], 'lastFetch' => strtotime($row['lastFetch']));
         }
         foreach ($fleetmembers as $member) {
             $this->members[] = array('id' => $member->getCharacterId(),
@@ -181,17 +183,29 @@ class ESIFLEET extends ESISSO
                 $m['backupfc'] = $this->members[$i]['backupfc'] = $dbmembers[$m['id']]['bfc'];
                 $sql = "UPDATE fleetmembers SET fleetID={$this->fleetID}, wingID={$m['wing']}, squadID={$m['squad']},role='{$m['role']}',fleetWarp={$m['fleetwarp']} WHERE characterID={$m['id']}";
                 $qry->query($sql);
-                if ($m['system'] != $dbmembers[$m['id']]['system'] || $m['station'] != $dbmembers[$m['id']]['station']) {
+                if ($m['system'] != $dbmembers[$m['id']]['system'] || ((int)$m['station'] != (int)$dbmembers[$m['id']]['station'])) {
                     if ($m['ship'] != $dbmembers[$m['id']]['ship']) {
-                        $sql="UPDATE pilots SET locationID='{$m['system']}',shipTypeID={$m['ship']},stationID='{$m['station']}',
-                              structureID='',fitting=NULL,lastFetch=NOW() WHERE characterID={$m['id']}"; 
+                        if (strtotime("now") - $dbmembers[$m['id']]['lastFetch'] < 30) {
+                            //$sql="UPDATE pilots SET locationID='{$m['system']}',stationID='{$m['station']}',
+                            //    structureID='',lastFetch=NOW() WHERE characterID={$m['id']}";
+                            $m['fit'] = $this->members[$i]['fit'] = $dbmembers[$m['id']]['fit'];
+                            $m['ship'] = $this->members[$i]['ship'] = $dbmembers[$m['id']]['ship'];
+                        } else {
+                            $sql="UPDATE pilots SET locationID='{$m['system']}',shipTypeID={$m['ship']},stationID='{$m['station']}',
+                                  structureID='',fitting=NULL,lastFetch=NOW() WHERE characterID={$m['id']}"; 
+                        }
                     } else {
                         $sql="UPDATE pilots SET locationID='{$m['system']}',stationID='{$m['station']}',
                               structureID='',lastFetch=NOW() WHERE characterID={$m['id']}";
                         $m['fit'] = $this->members[$i]['fit'] = $dbmembers[$m['id']]['fit'];
                     }
                 } elseif ($m['ship'] != $dbmembers[$m['id']]['ship']) {
-                    $sql="UPDATE pilots SET shipTypeID={$m['ship']},fitting=NULL,lastFetch=NOW() WHERE characterID={$m['id']}";
+                    if (strtotime("now") - $dbmembers[$m['id']]['lastFetch'] < 30) {
+                        $m['fit'] = $this->members[$i]['fit'] = $dbmembers[$m['id']]['fit'];
+                        $m['ship'] = $this->members[$i]['ship'] = $dbmembers[$m['id']]['ship'];
+                    } else {
+                        $sql="UPDATE pilots SET shipTypeID={$m['ship']},fitting=NULL,lastFetch=NOW() WHERE characterID={$m['id']}";
+                    }
                 }
                 $qry->query($sql);
                 unset($dbmembers[$m['id']]);
@@ -220,7 +234,7 @@ class ESIFLEET extends ESISSO
             $sql="DELETE FROM fleetmembers WHERE (characterID=".implode(" OR characterID=", $dbleft).") AND fleetID =".$this->fleetID;
             $qry->query($sql);
         }
-        $sql = "UPDATE fleets SET fc={$this->fc}, lastFetch=NOW() WHERE fleetID =".$this->fleetID;
+        $sql = "UPDATE fleets SET fc='{$this->fc}', lastFetch=NOW() WHERE fleetID =".$this->fleetID;
         $qry->query($sql);
         return true;
     }

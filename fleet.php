@@ -15,14 +15,33 @@ if (!isset($_SESSION['characterID'])) {
 
 $fleet = ESIFLEET::getFleetForChar($_SESSION['characterID']);
 if (!$fleet) {
-  $page->setWarning("Could not find a fleet for ".$_SESSION['characterName']);
-  $page->display();
-  exit;
-} else {
-  $_SESSION['fleetID'] = $fleet->getFleetID();
-  if (!$fleet->update() || $fleet->getError()) {
-    $page->setError($fleet->getMessage());
+  if(isset($_SESSION['fleetID'])) {
+    $fleet = new ESIFLEET($_SESSION['fleetID'], $_SESSION['characterID']);
+    if ($fleet->getError()) {
+      $page->setError($fleet->getMessage());
+      $page->display();
+      exit; 
+    }
+  } else {
+    $page->setWarning("Could not find a fleet for ".$_SESSION['characterName']);
     $page->display();
+    exit;
+  }
+} else {
+  if (!$fleet->update() || $fleet->getError()) {
+    if(isset($_SESSION['fleetID'])) {
+      $fleet = new ESIFLEET($_SESSION['fleetID'], $_SESSION['characterID']);
+      if ($fleet->getError()) {
+        $page->setError($fleet->getMessage());
+        $page->display();
+        exit;
+      }
+    } else {
+      $page->setError($fleet->getMessage());
+      $page->display();
+    }
+  } else {
+    $_SESSION['fleetID'] = $fleet->getFleetID();
   }
 }
 
