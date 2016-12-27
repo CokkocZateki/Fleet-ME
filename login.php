@@ -70,6 +70,10 @@ if (isset($_GET['login'])) {
               <div class="input-group row">
                 <br/><button type="submit" class="btn btn-primary">Submit</button>
               </div>
+              <div class="row">
+               <br/><p>Here\'s how to get the fleet link:</p>
+               <img class="img-responsive" src="img/copyfleet.png">
+             </div>
            </div>
         </form>';
         $page = new Page('Register Fleet');
