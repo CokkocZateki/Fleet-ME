@@ -1,9 +1,22 @@
 <?php
+//MYSQL credentials
 define('DB_HOST', 'localhost');
 define('DB_NAME', '');
 define('DB_USER', '');
 define('DB_PASS', '');
 
+//your eve developer ID and secret
+//Required scopes:
+//esi-fleets.read_fleet.v1, esi-location.read_location.v1, esi-location.read_ship_type.v1, 
+//esi-universe.read_structures.v1, si-fleets.write_fleet.v1, esi-ui.write_waypoint.v1
 define('ESI_ID', '');
 define('ESI_SECRET', '');
+
+//random salt
+define('ESI_SALT', '');
+
+//allowed entities to register fleets, leave all blank to allow everyone (names are arbitrary)
+define('FC_PILOTS', array());
+define('FC_CORPS', array());
+define('FC_ALLYS', array());
 ?>
