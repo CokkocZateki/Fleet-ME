@@ -206,6 +206,8 @@ class ESIFLEET extends ESISSO
                     } else {
                         $sql="UPDATE pilots SET shipTypeID={$m['ship']},fitting=NULL,lastFetch=NOW() WHERE characterID={$m['id']}";
                     }
+                } else {
+                    $m['fit'] = $this->members[$i]['fit'] = $dbmembers[$m['id']]['fit'];
                 }
                 $qry->query($sql);
                 unset($dbmembers[$m['id']]);
