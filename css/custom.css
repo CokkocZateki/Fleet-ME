@@ -64,3 +64,33 @@ body {
 img.mod-column {
   height: 20px;
 }
+
+.carousel-inner img {
+  margin: auto;
+}
+
+.carousel-control.left, .carousel-control.right {
+  background-image: none;
+}
+
+.center-block {
+  float: none !important
+}
+
+.carousel-inner .carousel-img {
+  box-shadow: 0 0 15px black;
+}
+
+.carousel-inner .item {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.carousel-caption {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.panel, .navbar-inverse {
+  box-shadow: 0 0 15px black;
+}

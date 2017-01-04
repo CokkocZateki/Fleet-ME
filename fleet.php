@@ -93,7 +93,7 @@ function getFleetHeader($fleet, $isBoss=false) {
                 success:function(data)
                 {
                   if (data !== "true") {
-                      alert("something went wrong");
+                      BootstrapDialog.show({message: "something went wrong", type: BootstrapDialog.TYPE_WARNING});
                   }
                 }
                 });
@@ -107,7 +107,7 @@ function getFleetHeader($fleet, $isBoss=false) {
                 success:function(data)
                 {
                   if (data !== "true") {
-                      alert("something went wrong");
+                      BootstrapDialog.show({message: "something went wrong", type: BootstrapDialog.TYPE_WARNING});
                   }
                 }
                 });
@@ -121,7 +121,7 @@ function getFleetHeader($fleet, $isBoss=false) {
                 success:function(data)
                 {
                   if (data == "false") {
-                      alert("something went wrong");
+                      BootstrapDialog.show({message: "something went wrong", type: BootstrapDialog.TYPE_WARNING});
                   } else {
                       $( "#motd" ).html("MOTD:<br/>"+data);
                   }
@@ -198,7 +198,7 @@ function getFleetTable($fleet, $hasRights=false) {
                 success:function(data)
                 {
                   if (data !== "true") {
-                      alert("something went wrong");
+                      BootstrapDialog.show({message: "something went wrong", type: BootstrapDialog.TYPE_WARNING});
                   }
                 }
                 }); 
@@ -250,7 +250,9 @@ function getScriptFooter() {
     </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/css/dataTables.bootstrap.min.css" rel="stylesheet"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/js/dataTables.bootstrap.min.js"></script>';
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/js/dataTables.bootstrap.min.js"></script>
+    <script src="js/bootstrap-dialog.min.js"></script>
+    <link href="css/bootstrap-dialog.min.css" rel="stylesheet">';
     return $html;
 }
 
