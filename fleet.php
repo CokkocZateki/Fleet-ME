@@ -29,12 +29,20 @@ if (!$fleet) {
   }
 } else {
   if (!$fleet->update() || $fleet->getError()) {
+    unset($fleet);
     if(isset($_SESSION['fleetID'])) {
       $fleet = new ESIFLEET($_SESSION['fleetID'], $_SESSION['characterID']);
       if ($fleet->getError()) {
         $page->setError($fleet->getMessage());
         $page->display();
         exit;
+      } else {
+        $fleet->update();
+        if ($fleet->getError()) {
+          $page->setError($fleet->getMessage());
+          $page->display();
+          exit;
+        }
       }
     } else {
       $page->setError($fleet->getMessage());
@@ -79,16 +87,22 @@ function getFleetHeader($fleet, $isBoss=false) {
     $fleetlink = URL::url_path().'fitting.php';
     $fh = '<h5>Fleet options</h5>
            <div class="row">
-             <div class="col-xs-12 col-lg-4"><div class="checkbox"><label><input type="checkbox" value="" '.($fleet->isPublic() ? 'checked ':'').'onchange="setpublic(this)">Comp visible to members</label></div></div>
-             <div class="col-xs-12 col-lg-4"><div class="checkbox"><label><input type="checkbox" value="" '.($fleet->getFreemove() ? 'checked ':'').'onchange="setfreemove(this)">Freemove</label></div></div>
-             <div class="col-xs-12 col-lg-4"><div class="checkbox"><label><input type="checkbox" value="" '.(strpos($motd, $fleetlink) ? 'checked ':'').'onchange="setmotd(this)">Fleet-Yo Link in motd</label></div></div>
+             <div class="col-xs-12 col-md-4 col-lg-2"><div class="checkbox"><label><input type="checkbox" value="" '.($fleet->isPublic() ? 'checked ':'').'onchange="setpublic(this)">Composition public</label></div></div>
+             <div class="col-xs-12 col-md-4 col-lg-2"><div class="checkbox"><label><input type="checkbox" value="" '.($fleet->getFreemove() ? 'checked ':'').'onchange="setfreemove(this)">Freemove</label></div></div>
+             <div class="col-xs-12 col-md-4 col-lg-2"><div class="checkbox"><label><input type="checkbox" value="" '.(strpos($motd, $fleetlink) ? 'checked ':'').'onchange="setmotd(this)">Fleet-Yo Link in motd</label></div></div>
+             <div class="col-xs-12 col-md-6 col-lg-3 tt-pilot form">
+               <link href="css/typeaheadjs.css" rel="stylesheet">
+               <input type="text" class="typeahead form-control" placeholder="invite to fleet">
+               <input id="inv-id" type="hidden" values="">
+               <button type="button" id="inv-button" class="tt-btn btn btn-primary disabled"><span class="glyphicon glyphicon-envelope"></span></button>
+             </div>
            </div>';
     $fh .= '<script>
         function setpublic(cb) {
             var state = cb.checked;
             $.ajax({
                 type: "POST",
-                url: "'.URL::url_path().'aj_public.php",
+                url: "'.URL::url_path().'ajax/aj_public.php",
                 data: {"fid" : '.$fleet->getFleetID().', "ajtok" : "'.$_SESSION['ajtoken'].'", "state" : state},
                 success:function(data)
                 {
@@ -102,7 +116,7 @@ function getFleetHeader($fleet, $isBoss=false) {
             var state = cb.checked;
             $.ajax({
                 type: "POST",
-                url: "'.URL::url_path().'aj_freemove.php",
+                url: "'.URL::url_path().'ajax/aj_freemove.php",
                 data: {"fid" : '.$fleet->getFleetID().', "ajtok" : "'.$_SESSION['ajtoken'].'", "state" : state},
                 success:function(data)
                 {
@@ -116,7 +130,7 @@ function getFleetHeader($fleet, $isBoss=false) {
             var state = cb.checked;
             $.ajax({
                 type: "POST",
-                url: "'.URL::url_path().'aj_motd.php",
+                url: "'.URL::url_path().'ajax/aj_motd.php",
                 data: {"fid" : '.$fleet->getFleetID().', "ajtok" : "'.$_SESSION['ajtoken'].'", "state" : state, "motd" : "blabala"},
                 success:function(data)
                 {
@@ -193,7 +207,7 @@ function getFleetTable($fleet, $hasRights=false) {
             var state = cb.checked;
             $.ajax({
                 type: "POST",
-                url: "'.URL::url_path().'aj_backupfc.php",
+                url: "'.URL::url_path().'ajax/aj_backupfc.php",
                 data: {"fid" : '.$fleet->getFleetID().', "cid" : id, "ajtok" : "'.$_SESSION['ajtoken'].'", "state" : state},
                 success:function(data)
                 {
@@ -251,6 +265,8 @@ function getScriptFooter() {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/css/dataTables.bootstrap.min.css" rel="stylesheet"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/js/jquery.dataTables.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.13/js/dataTables.bootstrap.min.js"></script>
+    <script src="js/typeahead.bundle.min.js"></script>
+    <script src="js/esi_autocomplete.js"></script>
     <script src="js/bootstrap-dialog.min.js"></script>
     <link href="css/bootstrap-dialog.min.css" rel="stylesheet">';
     return $html;

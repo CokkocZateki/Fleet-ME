@@ -6,11 +6,12 @@ if (session_status() != PHP_SESSION_ACTIVE) {
 use Swagger\Client\ApiException;
 use Swagger\Client\Api\FleetsApi;
 
+chdir(str_replace('/ajax','', getcwd()));
 require_once('config.php');
 require_once('loadclasses.php');
 
 if($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') {
-  if(@isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']==URL::url_path().'fleet.php')
+  if(@isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']==str_replace('/ajax','',URL::url_path().'fleet.php'))
   {
     if(($_POST['ajtok'] == $_SESSION['ajtoken']) && ($_POST['fid'] == $_SESSION['fleetID'])) {
       $qry = DB::getConnection();
@@ -33,21 +34,13 @@ if($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') {
             $esiapi->setAccessToken($fleet->getAccessToken());
             $fleetapi = new FleetsApi($esiapi);
             try {
-              $fleetinfo = $fleetapi->getFleetsFleetId($_SESSION['fleetID'], 'tranquility');
-              $oldmotd = $fleetinfo->getMotd();
-              $fleetlink = URL::url_path().'fitting.php';
-              if($_POST['state'] == "true") {
-                $newmotd = $oldmotd."<br/>Please submit your fitting here: ".$fleetlink;
-              } else {
-                $newmotd = str_replace("<br/>Please submit your fitting here: ".$fleetlink, "", $oldmotd);
-              }
-              $motd = new \Swagger\Client\Model\PutFleetsFleetIdNewSettings(array("motd" => $newmotd));
-              $response = $fleetapi->putFleetsFleetId($_SESSION['fleetID'], $motd,'tranquility');
+              $invite = new \Swagger\Client\Model\PostFleetsFleetIdMembersInvitation(array("character_id" => (bool)$_POST['cid'], "role" => "squad_member"));
+              $response = $fleetapi->postFleetsFleetIdMembers($_SESSION['fleetID'], $invite, 'tranquility');
             } catch (ApiException $e) {
               echo('false');
               exit;
             }
-            echo($newmotd);
+            echo('true');
             exit;
           } else {
             echo('false');
