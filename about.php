@@ -2,6 +2,7 @@
 require_once('loadclasses.php');
 $page = new Page('About Fleet-Yo!');
 $html = '<p>Fleet-Yo! &copy;2017 Snitch Ashor of BRGF.<br/><br/>
+Version 0.1b<br/><br/>
 Licensed under the Apache License, Version 2.0 (the "License");<br/>
 you may not use this file except in compliance with the License.<br/>
 You may obtain a copy of the License at<br/>

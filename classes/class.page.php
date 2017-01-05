@@ -78,10 +78,12 @@ class Page {
             <meta name="twitter:image" content="'.URL::url_path().'img/logo.png">
             <meta name="og:url" content="'.URL::url_path().'">
             <meta name="twitter:card" content="summary">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <link rel="stylesheet" href="css/cyborg.min.css" type="text/css" />
-            <link rel="stylesheet" href="css/custom.css" type="text/css" /> 
-            <title>'.$this->title.'</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="icon" href="img/logo.png" type="image/png">
+            <link rel="shortcut icon" href="img/logo.png" type="image/png">
+            <link rel="stylesheet" href="css/cyborg.min.css" type="text/css">
+            <link rel="stylesheet" href="css/custom.css" type="text/css"> 
+            <title>Fleet-Yo: '.$this->title.'</title>
             '.$this->header.'
         </head>
         <body>
