@@ -29,7 +29,6 @@ if (!$fleet) {
   }
 } else {
   if (!$fleet->update() || $fleet->getError()) {
-    unset($fleet);
     if(isset($_SESSION['fleetID'])) {
       $fleet = new ESIFLEET($_SESSION['fleetID'], $_SESSION['characterID']);
       if ($fleet->getError()) {
