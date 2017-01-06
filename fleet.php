@@ -93,7 +93,7 @@ function getFleetHeader($fleet, $isBoss=false) {
                <link href="css/typeaheadjs.css" rel="stylesheet">
                <input type="text" class="typeahead form-control" placeholder="invite to fleet">
                <input id="inv-id" type="hidden" values="">
-               <button type="button" id="inv-button" class="tt-btn btn btn-primary disabled"><span class="glyphicon glyphicon-envelope"></span></button>
+               <button type="button" id="inv-button" class="tt-btn btn btn-primary disabled" onclick="fleetinvite()"><span class="glyphicon glyphicon-envelope"></span></button>
              </div>
            </div>';
     $fh .= '<script>
@@ -140,6 +140,22 @@ function getFleetHeader($fleet, $isBoss=false) {
                   }
                 }
                 });
+        }
+        function fleetinvite() {
+             var char_id = $("#inv-id").val();
+             $.ajax({
+                type: "POST",
+                url: "'.URL::url_path().'ajax/aj_fleetinvite.php",
+                data: {"fid" : '.$fleet->getFleetID().', "ajtok" : "'.$_SESSION['ajtoken'].'", "cid" : char_id },
+                success:function(data)
+                {
+                  if (data !== "true") {
+                      BootstrapDialog.show({message: data, type: BootstrapDialog.TYPE_WARNING});
+                  } else {
+                      BootstrapDialog.show({message: "Fleet invite sent."});
+                  }
+                }
+             });
         }
     </script>';
     return $fh;

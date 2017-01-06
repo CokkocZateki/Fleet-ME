@@ -34,10 +34,11 @@ if($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') {
             $esiapi->setAccessToken($fleet->getAccessToken());
             $fleetapi = new FleetsApi($esiapi);
             try {
-              $invite = new \Swagger\Client\Model\PostFleetsFleetIdMembersInvitation(array("character_id" => (bool)$_POST['cid'], "role" => "squad_member"));
+              //$invite = new \Swagger\Client\Model\PostFleetsFleetIdMembersInvitation(array("character_id" => (bool)$_POST['cid'], "role" => "squad_member"));
+              $invite = '{"character_id": '.$_POST['cid'].',"role": "squad_member"}';
               $response = $fleetapi->postFleetsFleetIdMembers($_SESSION['fleetID'], $invite, 'tranquility');
             } catch (ApiException $e) {
-              echo('false');
+              echo($e->getMessage());
               exit;
             }
             echo('true');
