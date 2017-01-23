@@ -3,7 +3,6 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**content** | [**\Swagger\Client\Model\GetCharactersCharacterIdPlanetsPlanetIdOkContent[]**](GetCharactersCharacterIdPlanetsPlanetIdOkContent.md) | content array | [optional] 
 **expiry_time** | [**\DateTime**](\DateTime.md) | expiry_time string | [optional] 
 **extractor_details** | [**\Swagger\Client\Model\GetCharactersCharacterIdPlanetsPlanetIdOkExtractorDetails**](GetCharactersCharacterIdPlanetsPlanetIdOkExtractorDetails.md) |  | [optional] 
 **factory_details** | [**\Swagger\Client\Model\GetCharactersCharacterIdPlanetsPlanetIdOkFactoryDetails**](GetCharactersCharacterIdPlanetsPlanetIdOkFactoryDetails.md) |  | [optional] 

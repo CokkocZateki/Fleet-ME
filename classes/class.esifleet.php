@@ -74,7 +74,7 @@ class ESIFLEET extends ESISSO
             $fleetapi = new FleetsApi($esiapi);
             try {
                 $fleetinfo = $fleetapi->getFleetsFleetId($fleetID, 'tranquility');
-                $fleetmembers = $fleetapi->getFleetsFleetIdMembers($fleetID, 'en', 'tranquility');
+                $fleetmembers = $fleetapi->getFleetsFleetIdMembers($fleetID, 'en-us', 'tranquility');
             } catch (ApiException $e) {
                 $this->error = true;
                 $this->message = 'Could not find Fleet: '.$e->getMessage().PHP_EOL;
@@ -140,7 +140,7 @@ class ESIFLEET extends ESISSO
         $fleetapi = new FleetsApi($esiapi);
         try {
             $fleetinfo = $fleetapi->getFleetsFleetId($this->fleetID, 'tranquility');
-            $fleetmembers = $fleetapi->getFleetsFleetIdMembers($this->fleetID, 'en', 'tranquility');
+            $fleetmembers = $fleetapi->getFleetsFleetIdMembers($this->fleetID, 'en-us', 'tranquility');
         } catch (ApiException $e) {
             $this->error = true;
             if ($e->getCode() == 403) {

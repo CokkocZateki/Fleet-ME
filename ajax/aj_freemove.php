@@ -34,8 +34,9 @@ if($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') {
             $esiapi->setAccessToken($fleet->getAccessToken());
             $fleetapi = new FleetsApi($esiapi);
             try {
-              $freemove = new \Swagger\Client\Model\PutFleetsFleetIdNewSettings(array("is_free_move" => (bool)$_POST['state']));
-              $response = $fleetapi->putFleetsFleetId($_SESSION['fleetID'], $freemove,'tranquility');
+              //$freemove = new \Swagger\Client\Model\PutFleetsFleetIdNewSettings(array("is_free_move" => (bool)$_POST['state']));
+              $freemove = '{"is_free_move": '.$_POST['state'].'}';
+              $response = $fleetapi->putFleetsFleetId($_SESSION['fleetID'], $freemove, 'tranquility');
             } catch (ApiException $e) {
               echo('false');
               exit;

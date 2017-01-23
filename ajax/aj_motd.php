@@ -36,7 +36,7 @@ if($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') {
             try {
               $fleetinfo = $fleetapi->getFleetsFleetId($_SESSION['fleetID'], 'tranquility');
               $oldmotd = $fleetinfo->getMotd();
-              $fleetlink = URL::url_path().'fitting.php';
+              $fleetlink = str_replace('/ajax','',URL::url_path()).'fitting.php';
               if($_POST['state'] == "true") {
                 $newmotd = $oldmotd."<br/>Please submit your fitting here: ".$fleetlink;
               } else {

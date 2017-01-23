@@ -8,7 +8,7 @@ Method | HTTP request | Description
 
 
 # **getInsurancePrices**
-> \Swagger\Client\Model\GetInsurancePrices200Ok[] getInsurancePrices($accept_language, $datasource)
+> \Swagger\Client\Model\GetInsurancePrices200Ok[] getInsurancePrices($language, $datasource)
 
 List insurance levels
 
@@ -20,11 +20,11 @@ Return available insurance levels for all ship types  ---  Alternate route: `/v1
 require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\Api\InsuranceApi();
-$accept_language = "en"; // string | Language to use in the response
+$language = "en-us"; // string | Language to use in the response
 $datasource = "tranquility"; // string | The server name you would like data from
 
 try {
-    $result = $api_instance->getInsurancePrices($accept_language, $datasource);
+    $result = $api_instance->getInsurancePrices($language, $datasource);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling InsuranceApi->getInsurancePrices: ', $e->getMessage(), PHP_EOL;
@@ -36,7 +36,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **accept_language** | **string**| Language to use in the response | [optional] [default to en]
+ **language** | **string**| Language to use in the response | [optional] [default to en-us]
  **datasource** | **string**| The server name you would like data from | [optional] [default to tranquility]
 
 ### Return type
