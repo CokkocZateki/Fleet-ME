@@ -173,8 +173,8 @@ require_once(__DIR__ . '/vendor/autoload.php');
 Swagger\Client\Configuration::getDefaultConfiguration()->setAccessToken('YOUR_ACCESS_TOKEN');
 
 $api_instance = new Swagger\Client\Api\MarketApi();
-$structure_id = 789; // int | Return orders in this region
-$page = 1; // int | Which page to query, only used for querying without type_id. Starting at 1
+$structure_id = 789; // int | Return orders in this structure
+$page = 1; // int | Which page to query, starting at 1
 $datasource = "tranquility"; // string | The server name you would like data from
 
 try {
@@ -190,8 +190,8 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **structure_id** | **int**| Return orders in this region |
- **page** | **int**| Which page to query, only used for querying without type_id. Starting at 1 | [optional] [default to 1]
+ **structure_id** | **int**| Return orders in this structure |
+ **page** | **int**| Which page to query, starting at 1 | [optional] [default to 1]
  **datasource** | **string**| The server name you would like data from | [optional] [default to tranquility]
 
 ### Return type

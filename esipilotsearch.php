@@ -21,15 +21,16 @@ if (isset($_GET['q'])) {
             $charids = json_decode($searchapi->getSearch($_GET['q'], array('character'), 'en-us', false, 'tranquility'), true);
             if (count($charids)) {
                 $universeapi = new UniverseApi($esiapi);
-                $ids = new \Swagger\Client\Model\PostUniverseNamesIds(array('ids' => $charids['character']));
+                //$ids = new \Swagger\Client\Model\PostUniverseNamesIds(array('ids' => $charids['character']));
                 try {
-                    $results = $universeapi->postUniverseNames($ids, 'tranquility');
+                    $results = $universeapi->postUniverseNames($charids['character'], 'tranquility');
                     $response = '[';
                     foreach ($results as $result) {
                         $response .= $result->__toString().',';
                     }
                     $response .= ']';
                 } catch (Exception $e) {
+                    print $e->getMessage();
                     echo('{}');
                     die();
                 }
