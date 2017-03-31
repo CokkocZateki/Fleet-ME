@@ -18,7 +18,7 @@ if (isset($_GET['q'])) {
         $esiapi = new ESIAPI();
         $searchapi = new SearchApi($esiapi);
         try {
-            $charids = json_decode($searchapi->getSearch($_GET['q'], array('character'), 'en-us', false, 'tranquility'), true);
+            $charids = json_decode($searchapi->getSearch(array('character'), $_GET['q'], 'tranquility', 'en-us', false), true);
             if (count($charids)) {
                 $universeapi = new UniverseApi($esiapi);
                 //$ids = new \Swagger\Client\Model\PostUniverseNamesIds(array('ids' => $charids['character']));
@@ -37,7 +37,9 @@ if (isset($_GET['q'])) {
                 header('Content-type: application/json');
                 $response = str_replace(',]', ']', preg_replace( "/\r|\n/", "", $response));
                 echo $response;
-                file_put_contents($cachefile, $response, LOCK_EX);
+                if ($response != '{}') {
+                    file_put_contents($cachefile, $response, LOCK_EX);
+                }
                 die();
             } else {
                 echo('{}');

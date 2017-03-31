@@ -17,7 +17,6 @@ if (session_status() != PHP_SESSION_ACTIVE) {
 // Credit to FuzzySteve https://github.com/fuzzysteve/eve-sso-auth/
 class ESISSO
 {
-  static $userAgent = 'Fleet-Yo ESI client';
   private $code = null;
   protected $accessToken = null;
   private $refreshToken = null;
@@ -31,9 +30,11 @@ class ESISSO
   protected $enabled = true;
   protected $id = null;
   protected $expires = null;
+  protected $log;
 
 	function __construct($id = null, $characterID = 0, $refreshToken = null, $failcount = 0)
 	{
+                $this->log = new LOG('log/esi.log');
                 if($id != null) {
                         $this->id = $id;
                         $sql="SELECT * FROM esisso WHERE id=".$id;
@@ -94,7 +95,7 @@ class ESISSO
                 rtrim($fields_string, '&');
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $url);
-                curl_setopt($ch, CURLOPT_USERAGENT, self::$userAgent);
+                curl_setopt($ch, CURLOPT_USERAGENT, ESI_USER_AGENT);
                 curl_setopt($ch, CURLOPT_HTTPHEADER, array($header));
                 curl_setopt($ch, CURLOPT_POST, count($fields));
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
@@ -105,6 +106,7 @@ class ESISSO
                 if ($result === false) {
                     $this->error = true;
                     $this->message = (curl_error($ch));
+                    $this->log->error($this->message);
                 }
                 curl_close($ch);
                 if (!$this->error){
@@ -129,7 +131,7 @@ class ESISSO
                     $ch = curl_init();
                     $header = 'Authorization: Bearer '.$this->accessToken;
                     curl_setopt($ch, CURLOPT_URL, $verify_url);
-                    curl_setopt($ch, CURLOPT_USERAGENT, self::$userAgent);
+                    curl_setopt($ch, CURLOPT_USERAGENT, ESI_USER_AGENT);
                     curl_setopt($ch, CURLOPT_HTTPHEADER, array($header));
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
@@ -138,6 +140,7 @@ class ESISSO
                     if ($result === false) {
                         $this->error = true;
                         $this->message = (curl_error($ch));
+                        $this->log->error($this->message);
                     }
                     curl_close($ch);
                     if ($this->error) {
@@ -147,18 +150,22 @@ class ESISSO
                         if (isset($response->error)) {
                             $this->error = true;
                             $this->message = $response->error;
+                            $this->log->error($this->message);
                             return false;
                         }
                         if (!isset($response->CharacterID)) {
                             $this->error = true;
                             $this->message = "Failed to get character ID.";
+                            $this->log->error($this->message);
                             return false;
                         }
                         $this->characterID = $response->CharacterID;
+                        $this->characterName = $response->CharacterName;
                         $this->scopes = explode(' ', $response->Scopes);
                         if ($this->scopes == null || $this->scopes == '') {
                             $this->error = true;
                             $this->message = 'Scopes missing.';
+                            $this->log->error($this->message);
                             return false;
                         }
                         $this->ownerHash = $response->CharacterOwnerHash;
@@ -186,16 +193,29 @@ class ESISSO
                             $this->characterName = $characterName;
                         } catch (Exception $e) {
                             $this->error = true;
-                            $this->message = 'Could not relove character name: '.$e->getMessage().PHP_EOL;
+                            $this->message = 'Could not relove character name: '.$e->getMessage();
+                            $this->log->error($this->message);
                             return false;
                         }
-                	$sql="INSERT into esisso (characterID,characterName,refreshToken,accessToken,expires,ownerHash,failcount,enabled) 
-                              VALUES ({$characterID},'{$characterName}','{$refreshToken}','{$accessToken}','{$expires}','{$ownerHash}',0,TRUE)";
-			$result = $qry->query($sql);
-                        if (!$result) {
+                	$stmt = $qry->prepare("INSERT into esisso (characterID,characterName,refreshToken,accessToken,expires,ownerHash,failcount,enabled) 
+                                               VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                        if ($stmt) {
+                            $stmt->bind_param('isssssii', $cid, $cn, $rt, $at, $exp, $oh, $fc, $en);
+                            $cid = $characterID;
+                            $cn = $characterName;
+                            $rt = $refreshToken;
+                            $at = $accessToken;
+                            $exp = $expires;
+                            $oh = $ownerHash;
+                            $ft = 0;
+                            $en = 1;
+			    $stmt->execute();
+                            if ($stmt->errno) {
 				$this->error = true;
-				$this->message = $qry->getErrorMsg();
+				$this->message = $stmt->error;
+                                $this->log->error($this->message);
 				return false;
+                            }
                         }
                         $this->message = 'SSO credentials succesfully added.';
 		} else {
@@ -208,6 +228,7 @@ class ESISSO
                         if (!$result) {
                                 $this->error = true;
                                 $this->message = $qry->getErrorMsg();
+                                $this->log->error($this->message);
                                 return false;
                         }
                         $this->message = 'SSO credentials updated.';
@@ -218,6 +239,7 @@ class ESISSO
                 if (!isset($this->refreshToken)) {
 		    $this->error = true;
                     $this->message = "No refresh token set.";
+                    $this->log->error($this->message);
                     return false;
 		}
 	        $fields = array('grant_type' => 'refresh_token', 'refresh_token' => $this->refreshToken);
@@ -230,7 +252,7 @@ class ESISSO
 	        $fields_string = rtrim($fields_string, '&');
 	        $ch = curl_init();
 	        curl_setopt($ch, CURLOPT_URL, $url);
-	        curl_setopt($ch, CURLOPT_USERAGENT, self::$userAgent);
+	        curl_setopt($ch, CURLOPT_USERAGENT, ESI_USER_AGENT);
 	        curl_setopt($ch, CURLOPT_HTTPHEADER, array($header));
 	        curl_setopt($ch, CURLOPT_POST, count($fields));
 	        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
@@ -241,12 +263,14 @@ class ESISSO
                 if ($result === false) {
                     $this->error = true;
                     $this->message = (curl_error($ch));
+                    $this->log->error($this->message);
                 }
  	        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		curl_close($ch);
                 if ($httpCode < 199 || $httpCode > 299) {
                     $this->error = true;
                     $this->message = ("Error: Response ".$httpCode." when refreshing the Access Token.");
+                    $this->log->error($this->message);
                 }
                 if ($this->error) {
                     $this->increaseFailCount();
@@ -262,6 +286,7 @@ class ESISSO
                 if (!$result) {
                         $this->error = true;
                         $this->message = $qry->getErrorMsg();
+                        $this->log->error($this->message);
                         return false;
                 }
 
@@ -297,6 +322,10 @@ class ESISSO
 		return $this->error;
 	}
 
+        public function setMessage($message) {
+                $this->message = $message;
+        }
+
         public function getMessage() {
                 return $this->message;
         }
@@ -313,11 +342,24 @@ class ESISSO
 		return $this->ownerHash;
 	}
 
-        public function getCharacterID() { 
+        public function getCharacterID() {
 		return $this->characterID;
 	}
 
         public function getCharacterName() {
+                if ($this->characterName == null || $this->characterName == '') {
+                    $esiapi = new ESIAPI();
+                    $charapi = new CharacterApi($esiapi);
+                    try {
+                        $charinfo = json_decode($charapi->getCharactersCharacterId($this->characterID, 'tranquility'));
+                        $characterName = $charinfo->name;
+                        $this->characterName = $characterName;
+                    } catch (Exception $e) {
+                        $this->error = true;
+                        $this->message = 'Could not relove character name: '.$e->getMessage();
+                        $this->log->error($this->message);
+                    }
+                }
                 return $this->characterName;
         }
 

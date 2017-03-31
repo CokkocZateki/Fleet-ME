@@ -31,7 +31,14 @@ if (isset($_GET['code'])) {
   $esisso = new ESISSO();
   $esisso->setCode($code);
   if (!$esisso->getError()) {
-    $result = $esisso->addToDb();
+    $dbsso = new ESISSO(null, $esisso->getCharacterID());
+    if (count(array_intersect($esisso->getScopes(), $dbsso->getScopes())) == count($esisso->getScopes())) {
+      $esisso = $dbsso;
+      $result = true;
+      $esisso->setMessage("You were succesfully logged in.");
+    } else {
+      $result = $esisso->addToDb();
+    }
     if ($result) {
         $_SESSION['characterID'] = $esisso->getCharacterID();
         $_SESSION['characterName'] = $esisso->getCharacterName();

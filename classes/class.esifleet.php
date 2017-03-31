@@ -67,9 +67,11 @@ class ESIFLEET extends ESISSO
                 $stmt->close();
             }        
 
-
         } elseif (!$dbonly) {
             $esiapi = new ESIAPI();
+            if ($this->hasExpired()) {
+                $this->refresh(false);
+            }
             $esiapi->setAccessToken($this->accessToken);
             $fleetapi = new FleetsApi($esiapi);
             try {
@@ -123,7 +125,7 @@ class ESIFLEET extends ESISSO
         $result = $qry->query($sql);
         if($result->num_rows) {
             $row=$result->fetch_assoc();
-            $fleet = new ESIFLEET($row['fleetID'], $row['boss'], true);
+            $fleet = new ESIFLEET($row['fleetID'], $row['boss'], false);
             if ($fleet->getFleetID() == null) {
                 return false;
             } else {
@@ -156,7 +158,7 @@ class ESIFLEET extends ESISSO
         $dbmembers = array();
         $qry = DB::getConnection();
         $sql = "SELECT fm.fleetID as fleet, fm.characterID as id, p.shipTypeID as ship, p.fitting as fit, p.characterName as name, p.locationID as location, p.stationID as station, fm.backupfc as bfc, p.lastFetch as lastFetch
-                FROM fleetmembers as fm LEFT JOIN pilots as p ON p.characterID=fm.characterID";
+                FROM fleetmembers as fm INNER JOIN pilots as p ON p.characterID=fm.characterID";
         $result = $qry->query($sql);
         while ($row = $result->fetch_assoc()) {
             $dbmembers[$row['id']] = array('fleet' => $row['fleet'], 'ship' => $row['ship'], 'fit'=> $row['fit'], 'name' => $row['name'], 'system' => $row['location'], 'station' => $row['station'], 'bfc' => $row['bfc'], 'lastFetch' => strtotime($row['lastFetch']));
